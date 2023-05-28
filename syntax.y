@@ -84,7 +84,7 @@
 %right POWEROP
 %left COLON LPAREN RPAREN
 
-%nonassoc REDUCE
+
 
 %%
 program :                   body END subprograms
