@@ -2,11 +2,15 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
+    #include "hashtbl.h"
     #define YYDEBUG 1
 
     extern FILE * yyin;
     extern int yylex();
     extern void yyerror(const char *err);
+
+    HASHTBL *hashtbl;
+    int scope = 0;
 %}
 
 %define parse.error verbose
@@ -45,7 +49,7 @@
 %token RETURN "RETURN"
 
 //IDENTIFIER
-%token ID "Identifier"
+%token <strval> ID "Identifier"
 
 //Constants
 %token <intval> ICONST "ICONST"
@@ -88,43 +92,63 @@
 
 %%
 program :                   body END subprograms
+                            ;
 body :                      declarations statements
+                            ;
 declarations :              declarations type vars
                             | declarations RECORD fields ENDREC vars
                             | declarations DATA vals
                             | %empty
+                            ;
 type :                      INTEGER | REAL | LOGICAL | CHARACTER
+                            ;
 vars :                      vars COMMA undef_variable
                             | undef_variable
-undef_variable :            ID LPAREN dims RPAREN
-                            | ID
+                            ;
+undef_variable :            ID LPAREN dims RPAREN                                   {hashtbl_insert(hashtbl, $1, NULL, scope);}
+                            | ID                                                    {hashtbl_insert(hashtbl, $1, NULL, scope);}   
+                            ;                                                       
 dims :                      dims COMMA dim
                             | dim
-dim :                       ICONST | ID
+dim :                       ICONST 
+                            | ID                                                    {hashtbl_insert(hashtbl, $1, NULL, scope);}
+                            ;
 fields :                    fields field
                             | field
+                            ;
 field :                     type vars
                             | RECORD fields ENDREC vars
-vals :                      vals COMMA ID value_list
-                            | ID value_list
+                            ;
+vals :                      vals COMMA ID value_list                                {hashtbl_insert(hashtbl, $3, NULL, scope);}
+                            | ID value_list                                         {hashtbl_insert(hashtbl, $1, NULL, scope);}
+                            ;
 value_list :                DIVOP values DIVOP
+                            ;
 values :                    values COMMA value
                             | value
+                            ;
 value :                     repeat MULOP ADDOP constant
                             | repeat MULOP constant
                             | repeat MULOP STRING
                             | ADDOP constant
                             | constant
                             | STRING
+                            ;
 repeat :                    ICONST | %empty
+                            ;
 constant :                  ICONST | RCONST | LCONST | CCONST
+                            ;
 statements :                statements labeled_statement
                             | labeled_statement
+                            ;
 labeled_statement :         label statement
                             | statement
+                            ;
 label :                     ICONST
+                            ;
 statement :                 simple_statement
                             | compound_statement
+                            ;
 simple_statement :          assignment
                             | goto_statement
                             | if_statement
@@ -133,13 +157,17 @@ simple_statement :          assignment
                             | CONTINUE
                             | RETURN
                             | STOP
+                            ;
 assignment :                variable ASSIGN expression
                             | variable ASSIGN STRING
-variable :                  variable COLON ID
+                            ;
+variable :                  variable COLON ID                                       {hashtbl_insert(hashtbl, $3, NULL, scope);}
                             | variable LPAREN expressions RPAREN 
-                            | ID 
+                            | ID                                                    {hashtbl_insert(hashtbl, $1, NULL, scope);}
+                            ;
 expressions :               expressions COMMA expression 
                             | expression 
+                            ;
 expression :                expression OROP expression
                             | expression ANDOP expression
                             | expression RELOP expression
@@ -152,43 +180,64 @@ expression :                expression OROP expression
                             | variable
                             | constant
                             | LPAREN expression RPAREN
+                            ;
 goto_statement :            GOTO label
-                            | GOTO ID COMMA LPAREN labels RPAREN
+                            | GOTO ID COMMA LPAREN labels RPAREN                    {hashtbl_insert(hashtbl, $2, NULL, scope);}
+                            ;
 labels :                    labels COMMA label
                             | label
+                            ;
 if_statement :              IF LPAREN expression RPAREN label COMMA label COMMA label
                             | IF LPAREN expression RPAREN simple_statement
+                            ;
 subroutine_call :           CALL variable
+                            ;
 io_statement :              READ read_list
                             | WRITE write_list
+                            ;
 read_list :                 read_list COMMA read_item
                             | read_item
+                            ;
 read_item :                 variable
-                            | LPAREN read_list COMMA ID ASSIGN iter_space RPAREN
+                            | LPAREN read_list COMMA ID ASSIGN iter_space RPAREN    {hashtbl_insert(hashtbl, $4, NULL, scope);}
+                            ;
 iter_space :                expression COMMA expression step
+                            ;
 step :                      COMMA expression
                             | %empty
+                            ;
 write_list :                write_list COMMA write_item
                             | write_item
+                            ;
 write_item :                expression
-                            | LPAREN write_list COMMA ID ASSIGN iter_space RPAREN
+                            | LPAREN write_list COMMA ID ASSIGN iter_space RPAREN   {hashtbl_insert(hashtbl, $4, NULL, scope);}
                             | STRING
+                            ;
 compound_statement :        branch_statement
                             | loop_statement
+                            ;
 branch_statement :          IF LPAREN expression RPAREN THEN body tail
+                            ;
 tail :                      ELSE body ENDIF
                             | ENDIF
-loop_statement :            DO ID ASSIGN iter_space body ENDDO
+                            ;
+loop_statement :            DO ID ASSIGN iter_space body ENDDO                      {hashtbl_insert(hashtbl, $2, NULL, scope);}
+                            ;
 subprograms :               subprograms subprogram
                             | %empty
+                            ;
 subprogram :                header body END
-header :                    type FUNCTION ID LPAREN formal_parameters RPAREN
-                            | SUBROUTINE ID LPAREN formal_parameters RPAREN
-                            | SUBROUTINE ID
+                            ;
+header :                    type FUNCTION ID LPAREN formal_parameters RPAREN        {hashtbl_insert(hashtbl, $3, NULL, scope);}
+                            | SUBROUTINE ID LPAREN formal_parameters RPAREN         {hashtbl_insert(hashtbl, $2, NULL, scope);}
+                            | SUBROUTINE ID                                         {hashtbl_insert(hashtbl, $2, NULL, scope);}
+                            ;                             
 formal_parameters :         type vars COMMA formal_parameters
                             | type vars
+                            ;
 
 %%
+
 int main(int argc, char *argv[]) {
     int token;
     if(argc < 2) {
@@ -202,8 +251,14 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    if(!(hashtbl = hashtbl_create(10, NULL))) {
+        puts("Error, failed to initialize hashtable\n");
+        return -1;
+    }
+
     yyparse();
     
     fclose(yyin);
+    hashtbl_destroy(hashtbl);
     return 0;
 }

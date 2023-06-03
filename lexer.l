@@ -5,6 +5,8 @@
     //#include "lexer.h"
     #include "syntax.tab.h"
 
+    #define flexdebug 0
+
     char str_buf[256];
     int error_counter = 0;
 
@@ -134,6 +136,9 @@ int str_to_int(char *string) {
 }
 
 void print_token(int token_id) {
+    if(!flexdebug)
+        return;
+
     if(token_id == ICONST)
         printf("LINE: %d | Found token %-10s | with ID: %d | BASE 10: %d\n", yylineno, yytext, token_id, str_to_int(yytext));
     else
