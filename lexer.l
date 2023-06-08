@@ -2,10 +2,11 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
+    #include <math.h>
     //#include "lexer.h"
     #include "syntax.tab.h"
 
-    #define flexdebug 0
+    #define flexdebug 1
 
     char str_buf[256];
     int error_counter = 0;
@@ -13,6 +14,9 @@
     void print_token(int token_id);
     int str_to_int(char *string);
     char handle_escape_sequence(char escape_char);
+    float hex_to_float(char *str);
+    float bin_to_float(char *str);
+    float str_to_float(char *string);
 
     void yyerror(const char *err);
 %}
@@ -24,6 +28,11 @@
 %x STRING
 
 ICONST      (0[bB][1][01]*)|(0[hH][1-9A-F][0-9A-F]*)|(0|[1-9][0-9]*)
+BINCONST    (0[bB])(1[01]*)?\.(0*1+[01]*|0)
+HEXCONST    0[Hh](0|[1-9A-F][0-9A-F]*)?\.(0*[1-9A-F]+[0-9A-F]*|0)?
+EXP         E[+-]?(0|[1-9][0-9]*)
+DECCONST    (0|[1-9][0-9]*)?(\.)(0*[1-9]+[0-9]*|0)?{EXP}?|(0|[1-9][0-9]*){EXP}
+RCONST      {BINCONST}|{HEXCONST}|{DECCONST}
 IDENTIFIER  [a-zA-Z][a-zA-Z0-9]*|_[a-zA-Z][a-zA-Z0-9]*((_?)[a-zA-Z0-9])*_
 
 %%
@@ -53,6 +62,7 @@ IDENTIFIER  [a-zA-Z][a-zA-Z0-9]*|_[a-zA-Z][a-zA-Z0-9]*((_?)[a-zA-Z0-9])*_
 
 {IDENTIFIER}    {print_token(ID); yylval.strval = strdup(yytext); return ID;} 
 {ICONST}        {print_token(ICONST); yylval.intval = str_to_int(yytext); return ICONST;}
+{RCONST}        {print_token(RCONST); yylval.floatval = str_to_float(yytext); return RCONST;}
 
 \"                  {BEGIN(STRING);}
 <STRING>\"          {BEGIN(INITIAL); printf("Found string '%s' \n", str_buf); strcpy(str_buf, ""); return STRING;}
@@ -141,6 +151,8 @@ void print_token(int token_id) {
 
     if(token_id == ICONST)
         printf("LINE: %d | Found token %-10s | with ID: %d | BASE 10: %d\n", yylineno, yytext, token_id, str_to_int(yytext));
+    else if(token_id == RCONST)
+        printf("LINE: %d | Found token %-10s | with ID: %d | BASE 10: %f\n", yylineno, yytext, token_id, str_to_float(yytext));
     else
         printf("LINE: %d | Found token %-10s | with ID: %d\n", yylineno, yytext, token_id);
     return ; 
@@ -173,4 +185,50 @@ char handle_escape_sequence(char escape_char) {
         case 'v':
             return '\v';
     }
+}
+
+float str_to_float(char *string) {
+    if(strncmp(string, "0h", 2) == 0 || strncmp(string, "0H", 2) == 0)
+        return hex_to_float(string);
+    else if(strncmp(string, "0b", 2) == 0 || strncmp(string, "0B", 2) == 0)
+        return bin_to_float(string);
+    else    
+        return atof(string);
+}
+
+float bin_to_float(char *str) {
+    float number = 0.0;
+    int i, length_real;
+    char *character;
+
+    character = strchr(str, '.');
+    length_real = strlen(character) - 1;
+    number = (int)strtol(&str[2], &character, 2);
+    
+    for(i = 1; i < length_real+1; i++) {
+        number += (character[i] - '0') * (1/pow(2,i));
+    }
+    return number;
+}
+
+float hex_to_float(char *str) {
+    float number = 0.0;
+    int i, length_real;
+    char *character;
+
+    character = strchr(str, '.');
+    length_real = strlen(character) - 1;
+
+    number = (int)strtol(&str[2], &character, 16);
+    for(i = 1; i < length_real + 1; i++) {
+        if(character[i] <= '9')
+			number += (character[i] - '0') * (1/pow(16,i));
+		else if(character[i]  <= 'Z'){
+			number += (character[i] + 10 - 'A') * (1/pow(16,i)); 
+	    }
+		else{
+			number += (character[i] + 10 - 'a') * (1/pow(16,i));
+		}
+    }
+    return number;
 }
