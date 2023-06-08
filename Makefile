@@ -11,4 +11,4 @@ hashtbl.o: hashtbl.c hashtbl.h
 	gcc -o hashtbl.o -c hashtbl.c
 
 clean:
-	rm lex.yy.c a.out syntax.tab.c syntax.tab.h syntax.output
+	rm lex.yy.c a.out syntax.tab.c syntax.tab.h syntax.output hashtbl.o
