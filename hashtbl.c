@@ -72,12 +72,13 @@ void hashtbl_destroy(HASHTBL *hashtbl)
 	free(hashtbl);
 }
 
-int hashtbl_insert(HASHTBL *hashtbl, const char *key, void *data ,int scope)
+int hashtbl_insert(HASHTBL *hashtbl, const char *key, void *data ,int scope, DataType type)
 {
 	struct hashnode_s *node;
 	hash_size hash=hashtbl->hashfunc(key)%hashtbl->size;
 
-	printf("\t\t\t\t\tHASHTBL_INSERT(): KEY = %s, HASH = %ld,  \tDATA = %s, SCOPE = %d\n", key, hash, (char*)data, scope);
+	printf("\t\t\t\t\tHASHTBL_INSERT(): KEY = %s, HASH = %ld, SCOPE = %d, ", key, hash, scope);
+	printSymbolTableEntry(*(SymbolTableEntry*)data);
 
 	node=hashtbl->nodes[hash];
 	while(node) {
@@ -95,6 +96,7 @@ int hashtbl_insert(HASHTBL *hashtbl, const char *key, void *data ,int scope)
 	}
 	node->data=data;
 	node->scope = scope;
+	node->type = type;
 	node->next=hashtbl->nodes[hash];
 	hashtbl->nodes[hash]=node;
 
@@ -145,4 +147,27 @@ void *hashtbl_get(HASHTBL *hashtbl, int scope)
 		printf("\t\t\t\t\tHASHTBL_GET():\tThere are no elements in the hash table with this scope!\n\t\tSCOPE = %d\n", scope);
 	
 	return NULL;
+}
+
+void printSymbolTableEntry(SymbolTableEntry entry) {
+	char dataType[13];
+	switch (entry.type) {
+        case INT_TYPE:
+            strcpy(dataType,"INTEGER");
+            break;
+        case REAL_TYPE:
+            strcpy(dataType,"REAL");
+            break;
+        case LOGICAL_TYPE:
+            strcpy(dataType,"LOGICAL");
+            break;
+        case CHARACTER_TYPE:
+            strcpy(dataType,"CHARACTER");
+            break;
+    }
+    if (entry.isArray) {
+        printf("Array Type = %s\n", dataType);
+    } else {
+        printf("Type = %s\n", dataType);
+    }
 }

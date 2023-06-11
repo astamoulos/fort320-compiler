@@ -5,3 +5,4 @@ syntax.tab.h
 syntax.output
 a.out
 hashtbl.o
+settings.json

@@ -6,7 +6,7 @@
     //#include "lexer.h"
     #include "syntax.tab.h"
 
-    #define flexdebug 1
+    #define flexdebug 0
 
     char str_buf[256];
     int error_counter = 0;
@@ -113,7 +113,7 @@ IDENTIFIER  [a-zA-Z][a-zA-Z0-9]*|_[a-zA-Z][a-zA-Z0-9]*((_?)[a-zA-Z0-9])*_
 [ \t]           { }
 [\n]            { }
 [\r\n]          { }
-<<EOF>>         {print_token(EOF); return 0;}
+<<EOF>>         {print_token(0); return 0;}
                 
 .               {yyerror("Unrecognised Charachter\n");} 
 
@@ -153,6 +153,8 @@ void print_token(int token_id) {
         printf("LINE: %d | Found token %-10s | with ID: %d | BASE 10: %d\n", yylineno, yytext, token_id, str_to_int(yytext));
     else if(token_id == RCONST)
         printf("LINE: %d | Found token %-10s | with ID: %d | BASE 10: %f\n", yylineno, yytext, token_id, str_to_float(yytext));
+    else if(token_id == 0)
+        printf("LINE: %d | Found token %-10s | with ID: %d\n", yylineno, "eof", 0);
     else
         printf("LINE: %d | Found token %-10s | with ID: %d\n", yylineno, yytext, token_id);
     return ; 

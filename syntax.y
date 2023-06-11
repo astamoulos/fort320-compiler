@@ -8,9 +8,12 @@
     extern FILE * yyin;
     extern int yylex();
     extern void yyerror(const char *err);
-
+    SymbolTableEntry* make_entry(DataType type, int isArray);
+    
     HASHTBL *hashtbl;
     int scope = 0;
+
+    DataType current_type;
 %}
 
 %define parse.error verbose
@@ -20,6 +23,8 @@
     float floatval;
     char charval;
     char* strval;
+    
+    //enum types basic_type;
 }
 
 // KEYWORDS
@@ -77,7 +82,7 @@
 %token ASSIGN "="
 %token COLON ":"
 
-/*%token T_EOF 0 "end of file"*/
+%token T_EOF 0 "end of file"
 
 %left OROP
 %left ANDOP
@@ -87,7 +92,6 @@
 %left MULOP DIVOP
 %right POWEROP
 %left COLON LPAREN RPAREN
-
 
 
 %%
@@ -100,18 +104,21 @@ declarations :              declarations type vars
                             | declarations DATA vals
                             | %empty
                             ;
-type :                      INTEGER | REAL | LOGICAL | CHARACTER
+type :                      INTEGER             {current_type = INT_TYPE;} 
+                            | REAL              {current_type = REAL_TYPE;} 
+                            | LOGICAL           {current_type = LOGICAL_TYPE;} 
+                            | CHARACTER         {current_type = CHARACTER_TYPE;} 
                             ;
 vars :                      vars COMMA undef_variable
                             | undef_variable
                             ;
-undef_variable :            ID LPAREN dims RPAREN                                   {hashtbl_insert(hashtbl, $1, NULL, scope);}
-                            | ID                                                    {hashtbl_insert(hashtbl, $1, NULL, scope);}   
+undef_variable :            ID LPAREN dims RPAREN                                   {hashtbl_insert(hashtbl, $1, make_entry(current_type, 1), scope, current_type);}
+                            | ID                                                    {hashtbl_insert(hashtbl, $1, make_entry(current_type, 0), scope, current_type);}   
                             ;                                                       
 dims :                      dims COMMA dim
                             | dim
 dim :                       ICONST 
-                            | ID                                                    {hashtbl_insert(hashtbl, $1, NULL, scope);}
+                            | ID                                                    //{hashtbl_insert(hashtbl, $1, NULL, scope, current_type);}
                             ;
 fields :                    fields field
                             | field
@@ -119,8 +126,8 @@ fields :                    fields field
 field :                     type vars
                             | RECORD fields ENDREC vars
                             ;
-vals :                      vals COMMA ID value_list                                {hashtbl_insert(hashtbl, $3, NULL, scope);}
-                            | ID value_list                                         {hashtbl_insert(hashtbl, $1, NULL, scope);}
+vals :                      vals COMMA ID value_list                                //{hashtbl_insert(hashtbl, $3, NULL, scope, current_type);}
+                            | ID value_list                                         //{hashtbl_insert(hashtbl, $1, NULL, scope, current_type);}
                             ;
 value_list :                DIVOP values DIVOP
                             ;
@@ -161,9 +168,9 @@ simple_statement :          assignment
 assignment :                variable ASSIGN expression
                             | variable ASSIGN STRING
                             ;
-variable :                  variable COLON ID                                       {hashtbl_insert(hashtbl, $3, NULL, scope);}
+variable :                  variable COLON ID                                       //{hashtbl_insert(hashtbl, $3, NULL, scope, current_type);}
                             | variable LPAREN expressions RPAREN 
-                            | ID                                                    {hashtbl_insert(hashtbl, $1, NULL, scope);}
+                            | ID                                                    //{hashtbl_insert(hashtbl, $1, NULL, scope, current_type);}
                             ;
 expressions :               expressions COMMA expression 
                             | expression 
@@ -182,7 +189,7 @@ expression :                expression OROP expression
                             | LPAREN expression RPAREN
                             ;
 goto_statement :            GOTO label
-                            | GOTO ID COMMA LPAREN labels RPAREN                    {hashtbl_insert(hashtbl, $2, NULL, scope);}
+                            | GOTO ID COMMA LPAREN labels RPAREN                    //{hashtbl_insert(hashtbl, $2, NULL, scope, current_type);}
                             ;
 labels :                    labels COMMA label
                             | label
@@ -199,7 +206,7 @@ read_list :                 read_list COMMA read_item
                             | read_item
                             ;
 read_item :                 variable
-                            | LPAREN read_list COMMA ID ASSIGN iter_space RPAREN    {hashtbl_insert(hashtbl, $4, NULL, scope);}
+                            | LPAREN read_list COMMA ID ASSIGN iter_space RPAREN    //{hashtbl_insert(hashtbl, $4, NULL, scope, current_type);}
                             ;
 iter_space :                expression COMMA expression step
                             ;
@@ -210,7 +217,7 @@ write_list :                write_list COMMA write_item
                             | write_item
                             ;
 write_item :                expression
-                            | LPAREN write_list COMMA ID ASSIGN iter_space RPAREN   {hashtbl_insert(hashtbl, $4, NULL, scope);}
+                            | LPAREN write_list COMMA ID ASSIGN iter_space RPAREN   //{hashtbl_insert(hashtbl, $4, NULL, scope, current_type);}
                             | STRING
                             ;
 compound_statement :        branch_statement
@@ -221,16 +228,16 @@ branch_statement :          IF LPAREN expression RPAREN THEN body tail
 tail :                      ELSE body ENDIF
                             | ENDIF
                             ;
-loop_statement :            DO ID ASSIGN iter_space body ENDDO                      {hashtbl_insert(hashtbl, $2, NULL, scope);}
+loop_statement :            DO ID ASSIGN iter_space body ENDDO                      //{hashtbl_insert(hashtbl, $2, NULL, scope, current_type);}
                             ;
 subprograms :               subprograms subprogram
                             | %empty
                             ;
 subprogram :                header body END
                             ;
-header :                    type FUNCTION ID LPAREN formal_parameters RPAREN        {hashtbl_insert(hashtbl, $3, NULL, scope);}
-                            | SUBROUTINE ID LPAREN formal_parameters RPAREN         {hashtbl_insert(hashtbl, $2, NULL, scope);}
-                            | SUBROUTINE ID                                         {hashtbl_insert(hashtbl, $2, NULL, scope);}
+header :                    type FUNCTION ID LPAREN formal_parameters RPAREN        //{hashtbl_insert(hashtbl, $3, NULL, scope, current_type);}
+                            | SUBROUTINE ID LPAREN formal_parameters RPAREN         //{hashtbl_insert(hashtbl, $2, NULL, scope, current_type);}
+                            | SUBROUTINE ID                                         //{hashtbl_insert(hashtbl, $2, NULL, scope, current_type);}
                             ;                             
 formal_parameters :         type vars COMMA formal_parameters
                             | type vars
@@ -261,4 +268,12 @@ int main(int argc, char *argv[]) {
     fclose(yyin);
     hashtbl_destroy(hashtbl);
     return 0;
+}
+
+SymbolTableEntry* make_entry(DataType type, int isArray){
+    SymbolTableEntry* entry = malloc(sizeof(SymbolTableEntry));
+    entry->type = type;
+    entry->isArray = isArray;
+
+    return entry;
 }
