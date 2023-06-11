@@ -113,6 +113,7 @@ int hashtbl_remove(HASHTBL *hashtbl, const char *key,int scope)
 	while(node) {
 		if((!strcmp(node->key, key)) && (node->scope == scope)) {
 			free(node->key);
+			free(node->data);
 			if(prevnode) prevnode->next=node->next;
 			else hashtbl->nodes[hash]=node->next;
 			free(node);
