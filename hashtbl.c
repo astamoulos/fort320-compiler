@@ -63,6 +63,7 @@ void hashtbl_destroy(HASHTBL *hashtbl)
 		node=hashtbl->nodes[n];
 		while(node) {
 			free(node->key);
+			free(node->data);
 			oldnode=node;
 			node=node->next;
 			free(oldnode);
