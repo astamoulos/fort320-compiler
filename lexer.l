@@ -3,7 +3,7 @@
     #include <stdlib.h>
     #include <string.h>
     #include <math.h>
-    //#include "lexer.h"
+    #include "types.h"
     #include "syntax.tab.h"
 
     #define flexdebug 0

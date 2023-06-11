@@ -79,7 +79,7 @@ int hashtbl_insert(HASHTBL *hashtbl, const char *key, void *data ,int scope, Dat
 	hash_size hash=hashtbl->hashfunc(key)%hashtbl->size;
 
 	printf("\t\t\t\t\tHASHTBL_INSERT(): KEY = %s, HASH = %ld, SCOPE = %d, ", key, hash, scope);
-	printSymbolTableEntry(*(SymbolTableEntry*)data);
+	printSymbolTableEntry(*(SymbolTableEntry*)data, type);
 
 	node=hashtbl->nodes[hash];
 	while(node) {
@@ -151,9 +151,9 @@ void *hashtbl_get(HASHTBL *hashtbl, int scope)
 	return NULL;
 }
 
-void printSymbolTableEntry(SymbolTableEntry entry) {
+void printSymbolTableEntry(SymbolTableEntry entry, DataType type) {
 	char dataType[13];
-	switch (entry.type) {
+	switch (type) {
         case INT_TYPE:
             strcpy(dataType,"INTEGER");
             break;
@@ -165,6 +165,9 @@ void printSymbolTableEntry(SymbolTableEntry entry) {
             break;
         case CHARACTER_TYPE:
             strcpy(dataType,"CHARACTER");
+            break;
+		case RECORD_TYPE:
+            strcpy(dataType,"RECORD");
             break;
     }
     if (entry.isArray) {

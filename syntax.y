@@ -3,16 +3,23 @@
     #include <stdlib.h>
     #include <string.h>
     #include "hashtbl.h"
+    
     #define YYDEBUG 1
 
     extern FILE * yyin;
     extern int yylex();
     extern void yyerror(const char *err);
     SymbolTableEntry* make_entry(DataType type, int isArray);
-    
+    void initializeQueue(Queue* queue);
+    int isEmpty(Queue* queue);
+    void enqueue(Queue* queue, SymbolTableEntry entry);
+    SymbolTableEntry dequeue(Queue* queue);
+    void displayQueue(Queue* queue);
+    void destroyQueue(Queue* queue);
+    void addToSymbolTable(Queue* queue, DataType type);
+
     HASHTBL *hashtbl;
     int scope = 0;
-
     DataType current_type;
 %}
 
@@ -24,7 +31,9 @@
     char charval;
     char* strval;
     
-    //enum types basic_type;
+    DataType basictype;
+    SymbolTableEntry undef_var;
+    Queue queue;
 }
 
 // KEYWORDS
@@ -93,27 +102,30 @@
 %right POWEROP
 %left COLON LPAREN RPAREN
 
+%type <basictype> type
+%type <undef_var> undef_variable
+%type <queue> vars
 
 %%
 program :                   body END subprograms
                             ;
 body :                      declarations statements
                             ;
-declarations :              declarations type vars
-                            | declarations RECORD fields ENDREC vars
+declarations :              declarations type vars {displayQueue(&$3); addToSymbolTable(&$3, $2); destroyQueue(&$3); printf("queue destroyed\n");}
+                            | declarations RECORD fields ENDREC vars {addToSymbolTable(&$5, RECORD_TYPE); destroyQueue(&$5); printf("queue destroyed\n");}
                             | declarations DATA vals
                             | %empty
                             ;
-type :                      INTEGER             {current_type = INT_TYPE;} 
-                            | REAL              {current_type = REAL_TYPE;} 
-                            | LOGICAL           {current_type = LOGICAL_TYPE;} 
-                            | CHARACTER         {current_type = CHARACTER_TYPE;} 
+type :                      INTEGER             {$$ = INT_TYPE; current_type = INT_TYPE;} 
+                            | REAL              {$$ = REAL_TYPE; current_type = REAL_TYPE;} 
+                            | LOGICAL           {$$ = LOGICAL_TYPE; current_type = LOGICAL_TYPE;} 
+                            | CHARACTER         {$$ = CHARACTER_TYPE; current_type = CHARACTER_TYPE;} 
                             ;
-vars :                      vars COMMA undef_variable
-                            | undef_variable
+vars :                      vars COMMA undef_variable {enqueue(&$$, $3);}
+                            | undef_variable {initializeQueue(&$$); printf("queue init\n"); enqueue(&$$, $1);}
                             ;
-undef_variable :            ID LPAREN dims RPAREN                                   {hashtbl_insert(hashtbl, $1, make_entry(current_type, 1), scope, current_type);}
-                            | ID                                                    {hashtbl_insert(hashtbl, $1, make_entry(current_type, 0), scope, current_type);}   
+undef_variable :            ID LPAREN dims RPAREN                                   {$$.name = $1; $$.isArray = 1; /*hashtbl_insert(hashtbl, $1, make_entry(current_type, 1), scope, current_type);*/}
+                            | ID                                                    {$$.name = $1; $$.isArray = 0;  /*hashtbl_insert(hashtbl, $1, make_entry(current_type, 0), scope, current_type);*/}   
                             ;                                                       
 dims :                      dims COMMA dim
                             | dim
@@ -123,8 +135,8 @@ dim :                       ICONST
 fields :                    fields field
                             | field
                             ;
-field :                     type vars
-                            | RECORD fields ENDREC vars
+field :                     type vars {displayQueue(&$2); destroyQueue(&$2); printf("queue destroyed\n");}
+                            | RECORD fields ENDREC vars {displayQueue(&$4); destroyQueue(&$4); printf("queue destroyed\n");}
                             ;
 vals :                      vals COMMA ID value_list                                //{hashtbl_insert(hashtbl, $3, NULL, scope, current_type);}
                             | ID value_list                                         //{hashtbl_insert(hashtbl, $1, NULL, scope, current_type);}
@@ -276,4 +288,79 @@ SymbolTableEntry* make_entry(DataType type, int isArray){
     entry->isArray = isArray;
 
     return entry;
+}
+
+// Function to initialize an empty queue
+void initializeQueue(Queue* queue) {
+    queue->front = queue->rear = NULL;
+}
+
+// Function to check if the queue is empty
+int isEmpty(Queue* queue) {
+    return (queue->front == NULL);
+}
+
+// Function to enqueue a new element
+void enqueue(Queue* queue, SymbolTableEntry entry) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->data = entry;
+    newNode->next = NULL;
+
+    if (isEmpty(queue)) {
+        queue->front = queue->rear = newNode;
+    } else {
+        queue->rear->next = newNode;
+        queue->rear = newNode;
+    }
+}
+
+// Function to dequeue an element
+SymbolTableEntry dequeue(Queue* queue) {
+    if (isEmpty(queue)) {
+        printf("Queue is empty.\n");
+        exit(1);
+    }
+
+    Node* temp = queue->front;
+    SymbolTableEntry entry = temp->data;
+    queue->front = queue->front->next;
+
+    if (queue->front == NULL) {
+        queue->rear = NULL;
+    }
+
+    free(temp);
+    return entry;
+}
+
+// Function to display the queue elements
+void displayQueue(Queue* queue) {
+    if (isEmpty(queue)) {
+        printf("Queue is empty.\n");
+        return;
+    }
+
+    Node* temp = queue->front;
+    printf("Queue elements:\n");
+
+    while (temp != NULL) {
+        printf("Name: %s, Type: %d, isArray: %d, arraySize: %d\n",
+               temp->data.name, temp->data.type, temp->data.isArray, temp->data.arraySize);
+        temp = temp->next;
+    }
+}
+
+// Function to free the memory allocated for the queue
+void destroyQueue(Queue* queue) {
+    while (!isEmpty(queue)) {
+        dequeue(queue);
+    }
+}
+
+void addToSymbolTable(Queue* queue, DataType type) {
+    while (!isEmpty(queue)) {
+        SymbolTableEntry *dequeuedEntry = malloc(sizeof(SymbolTableEntry));
+        *dequeuedEntry = dequeue(queue);
+        hashtbl_insert(hashtbl, dequeuedEntry->name, dequeuedEntry, scope, type);
+    }
 }

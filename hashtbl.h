@@ -41,6 +41,6 @@ void hashtbl_destroy(HASHTBL *hashtbl);
 int hashtbl_insert(HASHTBL *hashtbl, const char *key, void *data, int scope, DataType type);
 int hashtbl_remove(HASHTBL *hashtbl, const char *key,int scope);
 void *hashtbl_get(HASHTBL *hashtbl, int scope);
-void printSymbolTableEntry(SymbolTableEntry entry);
+void printSymbolTableEntry(SymbolTableEntry entry, DataType type);
 
 #endif
