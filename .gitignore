@@ -4,5 +4,5 @@ syntax.tab.c
 syntax.tab.h
 syntax.output
 a.out
-hashtbl.o
+*.o
 settings.json
