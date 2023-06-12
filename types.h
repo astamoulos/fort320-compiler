@@ -29,4 +29,11 @@ typedef struct {
     Node* rear;
 } Queue;
 
+void initializeQueue(Queue* queue);
+int isEmpty(Queue* queue);
+void enqueue(Queue* queue, SymbolTableEntry entry);
+SymbolTableEntry dequeue(Queue* queue);
+void displayQueue(Queue* queue);
+void destroyQueue(Queue* queue);
+
 #endif
