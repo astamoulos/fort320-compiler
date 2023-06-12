@@ -14,4 +14,4 @@ types.o: types.c types.h
 	gcc -o types.o -c types.c
 
 clean:
-	rm lex.yy.c a.out syntax.tab.c syntax.tab.h syntax.output *.o
+	rm lex.yy.c syntax.tab.c syntax.tab.h syntax.output *.o a.out 

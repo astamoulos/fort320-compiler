@@ -14,9 +14,8 @@ typedef enum {
 typedef struct {
     char* name;
     DataType type;
-    int isArray;   // Flag indicating if it's an array
-    int arraySize; // Size of the array (if applicable)
-    /* Add other relevant attributes here */
+    int isArray;
+    int arraySize;
 } SymbolTableEntry;
 
 typedef struct Node {
