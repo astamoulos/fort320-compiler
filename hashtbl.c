@@ -73,35 +73,42 @@ void hashtbl_destroy(HASHTBL *hashtbl)
 	free(hashtbl);
 }
 
-int hashtbl_insert(HASHTBL *hashtbl, const char *key, void *data ,int scope, DataType type)
+struct hashnode_s* hashtbl_insert(HASHTBL *hashtbl, char *key, void *data ,int scope, DataType type, int isArray)
 {
 	struct hashnode_s *node;
 	hash_size hash=hashtbl->hashfunc(key)%hashtbl->size;
 
 	printf("\t\t\t\t\tHASHTBL_INSERT(): KEY = %s, HASH = %ld, SCOPE = %d, ", key, hash, scope);
-	printSymbolTableEntry(*(SymbolTableEntry*)data, type);
+	printf("Type = ");
+	printSymbolTableEntry(type, isArray);
 
 	node=hashtbl->nodes[hash];
 	while(node) {
 		if(!strcmp(node->key, key) && (node->scope == scope)) {
 			node->data=data;
+			printf("\t\t Symbol already exists\n");
+			free(key);
 			return 0;
 		}
 		node=node->next;
 	}
 
-	if(!(node=malloc(sizeof(struct hashnode_s)))) return -1;
+	if(!(node=malloc(sizeof(struct hashnode_s)))) return NULL;
 	if(!(node->key=mystrdup(key))) {
 		free(node);
-		return -1;
+		return NULL;
 	}
+	
 	node->data=data;
 	node->scope = scope;
+	node->isArray = isArray;
 	node->type = type;
 	node->next=hashtbl->nodes[hash];
+	node->fields = NULL;
 	hashtbl->nodes[hash]=node;
 
-	return 0;
+	free(key); //we need to free strdup from yylex
+	return node;
 }
 
 int hashtbl_remove(HASHTBL *hashtbl, const char *key,int scope)
@@ -151,8 +158,8 @@ void *hashtbl_get(HASHTBL *hashtbl, int scope)
 	return NULL;
 }
 
-void printSymbolTableEntry(SymbolTableEntry entry, DataType type) {
-	char dataType[13];
+void printSymbolTableEntry(DataType type, int isArray) {
+	char dataType[17];
 	switch (type) {
         case INT_TYPE:
             strcpy(dataType,"INTEGER");
@@ -170,9 +177,36 @@ void printSymbolTableEntry(SymbolTableEntry entry, DataType type) {
             strcpy(dataType,"RECORD");
             break;
     }
-    if (entry.isArray) {
-        printf("Array Type = %s\n", dataType);
+
+	if (isArray) {
+        printf("%s ARRAY\n", dataType);
     } else {
-        printf("Type = %s\n", dataType);
+        printf("%s\n", dataType);
     }
+}
+
+void hashtbl_print(HASHTBL *hashtbl)
+{
+	hash_size n;
+	struct hashnode_s *node;
+	struct hashnode_s *temp;
+	printf("------------  ------------------ \n");
+	printf("Name          Type   			 \n");
+	printf("------------  ------------------ \n");
+	for(n=0; n<hashtbl->size; ++n) {
+		node=hashtbl->nodes[n];
+		while(node) {
+			printf("%-12s  ", node->key);
+			printSymbolTableEntry(node->type, node->isArray);
+			if(node->fields){
+				temp = node->fields;
+				while(temp){
+					printf("    %-12s  ", temp->key);
+					printSymbolTableEntry(temp->type, temp->isArray);
+					temp = temp->next;
+				}
+			}
+			node=node->next;
+		}
+	}
 }

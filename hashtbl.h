@@ -20,13 +20,14 @@ Retrieved from: http://en.literateprograms.org/Hash_table_(C)?oldid=19638
 #include "types.h"
 
 typedef size_t hash_size;
-
 struct hashnode_s {
 	char *key;
 	void *data;
 	int scope; 
+	int isArray;
 	DataType type;
 	struct hashnode_s *next;
+	struct hashnode_s *fields;
 };
 
 typedef struct hashtbl {
@@ -38,9 +39,9 @@ typedef struct hashtbl {
 
 HASHTBL *hashtbl_create(hash_size size, hash_size (*hashfunc)(const char *));
 void hashtbl_destroy(HASHTBL *hashtbl);
-int hashtbl_insert(HASHTBL *hashtbl, const char *key, void *data, int scope, DataType type);
+struct hashnode_s* hashtbl_insert(HASHTBL *hashtbl, char *key, void *data, int scope, DataType type, int isArray);
 int hashtbl_remove(HASHTBL *hashtbl, const char *key,int scope);
 void *hashtbl_get(HASHTBL *hashtbl, int scope);
-void printSymbolTableEntry(SymbolTableEntry entry, DataType type);
-
+void printSymbolTableEntry(DataType type, int isArray);
+void hashtbl_print(HASHTBL *hashtbl);
 #endif

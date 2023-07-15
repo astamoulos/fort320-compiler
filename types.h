@@ -16,10 +16,10 @@ typedef struct {
     DataType type;
     int isArray;
     int arraySize;
-} SymbolTableEntry;
+} UndefVar;
 
 typedef struct Node {
-    SymbolTableEntry data;
+    UndefVar data;
     struct Node* next;
 } Node;
 
@@ -28,11 +28,19 @@ typedef struct {
     Node* rear;
 } Queue;
 
+typedef struct Field{
+	char *name;
+	DataType type;
+    struct Field *next;
+}Field;
+
 void initializeQueue(Queue* queue);
 int isEmpty(Queue* queue);
-void enqueue(Queue* queue, SymbolTableEntry entry);
-SymbolTableEntry dequeue(Queue* queue);
+void enqueue(Queue* queue, UndefVar entry);
+UndefVar dequeue(Queue* queue);
 void displayQueue(Queue* queue);
 void destroyQueue(Queue* queue);
+void addQueues(Queue* queue1, Queue* queue2);
+void assignTypeToQueue(Queue* queue, DataType newType);
 
 #endif

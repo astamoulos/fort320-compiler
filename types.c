@@ -2,18 +2,15 @@
 #include "types.h"
 #include <stdlib.h>
 
-// Function to initialize an empty queue
 void initializeQueue(Queue* queue) {
     queue->front = queue->rear = NULL;
 }
 
-// Function to check if the queue is empty
 int isEmpty(Queue* queue) {
     return (queue->front == NULL);
 }
 
-// Function to enqueue a new element
-void enqueue(Queue* queue, SymbolTableEntry entry) {
+void enqueue(Queue* queue, UndefVar entry) {
     Node* newNode = (Node*)malloc(sizeof(Node));
     newNode->data = entry;
     newNode->next = NULL;
@@ -26,26 +23,24 @@ void enqueue(Queue* queue, SymbolTableEntry entry) {
     }
 }
 
-// Function to dequeue an element
-SymbolTableEntry dequeue(Queue* queue) {
+UndefVar dequeue(Queue* queue) {
     if (isEmpty(queue)) {
         printf("Queue is empty.\n");
         exit(1);
     }
 
     Node* temp = queue->front;
-    SymbolTableEntry entry = temp->data;
+    UndefVar entry = temp->data;
     queue->front = queue->front->next;
 
     if (queue->front == NULL) {
         queue->rear = NULL;
     }
-
+    
     free(temp);
     return entry;
 }
 
-// Function to display the queue elements
 void displayQueue(Queue* queue) {
     if (isEmpty(queue)) {
         printf("Queue is empty.\n");
@@ -62,9 +57,36 @@ void displayQueue(Queue* queue) {
     }
 }
 
-// Function to free the memory allocated for the queue
 void destroyQueue(Queue* queue) {
     while (!isEmpty(queue)) {
         dequeue(queue);
+    }
+}
+
+void addQueues(Queue* queue1, Queue* queue2) {
+    if (isEmpty(queue2)) {
+        // Nothing to add if the second queue is empty
+        return;
+    }
+
+    if (isEmpty(queue1)) {
+        // If the first queue is empty, set the front and rear of the first queue to the second queue
+        queue1->front = queue2->front;
+        queue1->rear = queue2->rear;
+    } else {
+        // If the first queue is not empty, link the rear of the first queue to the front of the second queue
+        queue1->rear->next = queue2->front;
+        queue1->rear = queue2->rear;
+    }
+
+    // Reset the second queue
+    initializeQueue(queue2);
+}
+
+void assignTypeToQueue(Queue* queue, DataType newType) {
+    Node* current = queue->front;
+    while (current != NULL) {
+        current->data.type = newType;
+        current = current->next;
     }
 }

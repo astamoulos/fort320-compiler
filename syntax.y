@@ -10,7 +10,7 @@
     extern int yylex();
     extern void yyerror(const char *err);
     //SymbolTableEntry* make_entry(DataType type, int isArray);
-    void addToSymbolTable(Queue* queue, DataType type);
+    void addToSymbolTable(Queue* queue, DataType type, Queue* fields);
 
     HASHTBL *hashtbl;
     int scope = 0;
@@ -25,7 +25,8 @@
     char* strval;
     
     DataType basictype;
-    SymbolTableEntry undef_var;
+    UndefVar undef_var;
+    Field *field;
     Queue queue;
 }
 
@@ -97,15 +98,15 @@
 
 %type <basictype> type
 %type <undef_var> undef_variable
-%type <queue> vars
+%type <queue> vars fields field
 
 %%
 program :                   body END subprograms
                             ;
 body :                      declarations statements
                             ;
-declarations :              declarations type vars                                  {displayQueue(&$3); addToSymbolTable(&$3, $2); destroyQueue(&$3); printf("queue destroyed\n");}
-                            | declarations RECORD fields ENDREC vars                {addToSymbolTable(&$5, RECORD_TYPE); destroyQueue(&$5); printf("queue destroyed\n");}
+declarations :              declarations type vars                                  {displayQueue(&$3); addToSymbolTable(&$3, $2, NULL); destroyQueue(&$3); printf("queue destroyed\n");}
+                            | declarations RECORD fields ENDREC vars                {displayQueue(&$3); addToSymbolTable(&$5, RECORD_TYPE, &$3); destroyQueue(&$3); destroyQueue(&$5); printf("queue destroyed\n");}
                             | declarations DATA vals
                             | %empty
                             ;
@@ -125,11 +126,11 @@ dims :                      dims COMMA dim
 dim :                       ICONST 
                             | ID                                                    //{hashtbl_insert(hashtbl, $1, NULL, scope, current_type);}
                             ;
-fields :                    fields field
-                            | field
+fields :                    fields field    {addQueues(&$$, &$2);}
+                            | field         {$$ = $1; printf("im here\n");}         
                             ;
-field :                     type vars {displayQueue(&$2); destroyQueue(&$2); printf("queue destroyed\n");}
-                            | RECORD fields ENDREC vars {displayQueue(&$4); destroyQueue(&$4); printf("queue destroyed\n");}
+field :                     type vars {assignTypeToQueue(&$2, $1); $$ = $2; /*destroyQueue(&$2); printf("queue destroyed\n")*/;}
+                            | RECORD fields ENDREC vars {displayQueue(&$4); destroyQueue(&$4); printf("queue destroyed record \n");}
                             ;
 vals :                      vals COMMA ID value_list                                //{hashtbl_insert(hashtbl, $3, NULL, scope, current_type);}
                             | ID value_list                                         //{hashtbl_insert(hashtbl, $1, NULL, scope, current_type);}
@@ -271,6 +272,7 @@ int main(int argc, char *argv[]) {
     yyparse();
     
     fclose(yyin);
+    hashtbl_print(hashtbl);
     hashtbl_destroy(hashtbl);
     return 0;
 }
@@ -284,10 +286,35 @@ SymbolTableEntry* make_entry(DataType type, int isArray){
     return entry;
 }*/
 
-void addToSymbolTable(Queue* queue, DataType type) {
+void addToSymbolTable(Queue* queue, DataType type, Queue* fields) {
+    UndefVar dequeuedEntry, field;
+    struct hashnode_s* node;
     while (!isEmpty(queue)) {
-        SymbolTableEntry *dequeuedEntry = malloc(sizeof(SymbolTableEntry));
-        *dequeuedEntry = dequeue(queue);
-        hashtbl_insert(hashtbl, dequeuedEntry->name, dequeuedEntry, scope, type);
+        struct hashnode_s *new_field;
+        dequeuedEntry = dequeue(queue);
+        node = hashtbl_insert(hashtbl, dequeuedEntry.name, NULL, scope, type, dequeuedEntry.isArray);
+
+        if(fields){
+            printf("adding fields\n");
+            struct hashnode_s* curr_field = node->fields;
+            while(!isEmpty(fields)) {
+                field = dequeue(fields);
+                new_field = malloc(sizeof(struct hashnode_s));
+                new_field->key = strdup(field.name);
+                new_field->isArray = field.isArray;
+	            new_field->type = field.type;
+                new_field->next = NULL;
+
+                if (curr_field == NULL) {
+                    printf("NIL %s\n", field.name);
+                    node->fields = new_field;
+                    curr_field = new_field;
+                } else {
+                    printf("%s\n", field.name);
+                    curr_field->next = new_field;
+                    curr_field = curr_field->next;
+                }
+            }
+        }
     }
 }
