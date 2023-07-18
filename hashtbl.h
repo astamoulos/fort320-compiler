@@ -43,5 +43,7 @@ struct hashnode_s* hashtbl_insert(HASHTBL *hashtbl, char *key, void *data, int s
 int hashtbl_remove(HASHTBL *hashtbl, const char *key,int scope);
 void *hashtbl_get(HASHTBL *hashtbl, int scope);
 void printSymbolTableEntry(DataType type, int isArray);
+void printFields(struct hashnode_s* fields, int indentation);
 void hashtbl_print(HASHTBL *hashtbl);
+void destroy_fields(struct hashnode_s* fields);
 #endif

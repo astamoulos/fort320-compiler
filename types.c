@@ -2,91 +2,104 @@
 #include "types.h"
 #include <stdlib.h>
 
-void initializeQueue(Queue* queue) {
-    queue->front = queue->rear = NULL;
-}
-
-int isEmpty(Queue* queue) {
-    return (queue->front == NULL);
-}
-
-void enqueue(Queue* queue, UndefVar entry) {
+Node* createNode(UndefVar data) {
     Node* newNode = (Node*)malloc(sizeof(Node));
-    newNode->data = entry;
+    newNode->data = data;
     newNode->next = NULL;
-
-    if (isEmpty(queue)) {
-        queue->front = queue->rear = newNode;
-    } else {
-        queue->rear->next = newNode;
-        queue->rear = newNode;
-    }
+    newNode->fields= NULL;
+    return newNode;
 }
 
-UndefVar dequeue(Queue* queue) {
-    if (isEmpty(queue)) {
-        printf("Queue is empty.\n");
-        exit(1);
-    }
-
-    Node* temp = queue->front;
-    UndefVar entry = temp->data;
-    queue->front = queue->front->next;
-
-    if (queue->front == NULL) {
-        queue->rear = NULL;
-    }
-    
-    free(temp);
-    return entry;
+// Function to insert a Node at the beginning of the linked list
+void insertAtBeginning(Node** head, UndefVar data) {
+    Node* newNode = createNode(data);
+    newNode->next = *head;
+    *head = newNode;
 }
 
-void displayQueue(Queue* queue) {
-    if (isEmpty(queue)) {
-        printf("Queue is empty.\n");
+// Function to insert a Node at the end of the linked list
+void insertAtEnd(Node** head, UndefVar data) {
+    Node* newNode = createNode(data);
+    if (*head == NULL) {
+        *head = newNode;
         return;
     }
+    Node* temp = *head;
+    while (temp->next != NULL) {
+        temp = temp->next;
+    }
+    temp->next = newNode;
+}
 
-    Node* temp = queue->front;
-    printf("Queue elements:\n");
+// Function to display the linked list
+void displayList(Node* list) {
+    printf("Display list!\n");
+    Node* curr = list;
 
+    while (curr != NULL) {
+        printf("Name: %s\n", curr->data.name);
+
+        Node* field = curr->fields;
+        while (field != NULL) {
+            printf("\tField Name: %s\n", field->data.name);
+
+            // Check if the field has its own fields
+            if (field->fields != NULL) {
+                Node* nestedField = field->fields;
+                while (nestedField != NULL) {
+                    printf("\t\tNested Field Name: %s\n", nestedField->data.name);
+                    nestedField = nestedField->next;
+                }
+            }
+
+            field = field->next;
+        }
+
+        printf("\n");
+        curr = curr->next;
+    }
+}
+
+
+// Function to free the memory allocated for the linked list
+void freeList(Node** head) {
+    Node* current = *head;
+    Node* next;
+    while (current != NULL) {
+        next = current->next;
+        freeFields(current->fields);
+        free(current);
+        current = next;
+    }
+    *head = NULL;
+}
+
+void freeFields(Node* fields) {
+    Node* current = fields;
+    Node* next;
+    while (current != NULL) {
+        next = current->next;
+        free(current);
+        current = next;
+    }
+}
+
+void updateType(Node* head, DataType newType) {
+    Node* temp = head;
     while (temp != NULL) {
-        printf("Name: %s, Type: %d, isArray: %d, arraySize: %d\n",
-               temp->data.name, temp->data.type, temp->data.isArray, temp->data.arraySize);
+        temp->data.type = newType;
         temp = temp->next;
     }
 }
 
-void destroyQueue(Queue* queue) {
-    while (!isEmpty(queue)) {
-        dequeue(queue);
-    }
-}
-
-void addQueues(Queue* queue1, Queue* queue2) {
-    if (isEmpty(queue2)) {
-        // Nothing to add if the second queue is empty
-        return;
-    }
-
-    if (isEmpty(queue1)) {
-        // If the first queue is empty, set the front and rear of the first queue to the second queue
-        queue1->front = queue2->front;
-        queue1->rear = queue2->rear;
+void concatLists(Node** list1, Node* list2) {
+    if (*list1 == NULL) {
+        *list1 = list2;
     } else {
-        // If the first queue is not empty, link the rear of the first queue to the front of the second queue
-        queue1->rear->next = queue2->front;
-        queue1->rear = queue2->rear;
-    }
-
-    // Reset the second queue
-    initializeQueue(queue2);
-}
-
-void assignTypeToQueue(Queue* queue, DataType newType) {
-    Node* current = queue->front;
-    while (current != NULL) {
-        current->data.type = newType;
-        current = current->next;
+        Node* temp = *list1;
+        while (temp->next != NULL) {
+            temp = temp->next;
+        }
+        temp->next = list2;
     }
 }

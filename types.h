@@ -21,26 +21,16 @@ typedef struct {
 typedef struct Node {
     UndefVar data;
     struct Node* next;
+    struct Node* fields;
 } Node;
 
-typedef struct {
-    Node* front;
-    Node* rear;
-} Queue;
-
-typedef struct Field{
-	char *name;
-	DataType type;
-    struct Field *next;
-}Field;
-
-void initializeQueue(Queue* queue);
-int isEmpty(Queue* queue);
-void enqueue(Queue* queue, UndefVar entry);
-UndefVar dequeue(Queue* queue);
-void displayQueue(Queue* queue);
-void destroyQueue(Queue* queue);
-void addQueues(Queue* queue1, Queue* queue2);
-void assignTypeToQueue(Queue* queue, DataType newType);
-
+//linked list
+Node* createNode(UndefVar data);
+void insertAtBeginning(Node** head, UndefVar data);
+void insertAtEnd(Node** head, UndefVar data);
+void displayList(Node* head);
+void freeList(Node** head);
+void freeFields(Node* fields);
+void updateType(Node* head, DataType newType);
+void concatLists(Node** list1, Node* list2);
 #endif
