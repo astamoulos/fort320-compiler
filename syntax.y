@@ -12,6 +12,7 @@
     //SymbolTableEntry* make_entry(DataType type, int isArray);
     void addToSymbolTable(Node** list, DataType type, Node* fields);
     void addFieldsToSymbolTable(struct hashnode_s** curr_field, Node* fields);
+    void free_fields(Node* fields);
 
     HASHTBL *hashtbl;
     int scope = 0;
@@ -291,6 +292,23 @@ void addToSymbolTable(Node** list, DataType type, Node* fields) {
 
         curr = curr->next; // Move to the next node in the list
     }
+    Node* temp = fields;
+    while(temp){
+        free(temp->data.name);
+        free_fields(temp->fields);
+        temp = temp->next;
+    }
+}
+
+void free_fields(Node* fields){
+    Node* current = fields;
+    Node* next;
+    
+    while (current != NULL) {
+        next = current->next;
+        free(current->data.name);
+        current = next;
+    }
 }
 
 void addFieldsToSymbolTable(struct hashnode_s** curr_field, Node* fields) {
@@ -303,7 +321,7 @@ void addFieldsToSymbolTable(struct hashnode_s** curr_field, Node* fields) {
         new_field->isArray = field.isArray;
         new_field->type = field.type;
         new_field->next = NULL;
-        //new_field->fields = NULL;
+        new_field->fields = NULL;
 
         *curr_field = new_field;
         curr_field = &(new_field->next);

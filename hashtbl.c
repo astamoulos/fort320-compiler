@@ -62,7 +62,8 @@ void hashtbl_destroy(HASHTBL *hashtbl)
 	for(n=0; n<hashtbl->size; ++n) {
 		node=hashtbl->nodes[n];
 		while(node) {
-			destroy_fields(node->fields);
+			if(node->fields)
+				destroy_fields(node->fields);
 			free(node->key);
 			free(node->data);
 			oldnode=node;
@@ -76,15 +77,17 @@ void hashtbl_destroy(HASHTBL *hashtbl)
 
 void destroy_fields(struct hashnode_s* fields) {
     struct hashnode_s* temp = fields;
-
     while (temp) {
+		
         struct hashnode_s* oldnode = temp;
         temp = temp->next;
-
+		
         free(oldnode->key);
-        free(oldnode->data);
+		
+        //free(oldnode->data);
         destroy_fields(oldnode->fields); // Recursively destroy nested fields
         free(oldnode);
+		
     }
 }
 
@@ -232,15 +235,21 @@ void printFields(struct hashnode_s* fields, int indentation) {
 
     while (temp) {
         for (int i = 0; i < indentation; ++i) {
-            printf("\t"); // Print tabs for indentation
+            printf("    "); // Print tabs for indentation
         }
-
-        printf("%-12s  ", temp->key);
+		
+		printf("╰┈➤");
+        printf(" %s: ", temp->key);
         printSymbolTableEntry(temp->type, temp->isArray);
 		
         if (temp->fields) {
             printFields(temp->fields, indentation + 1); // Recursive call with increased indentation
         } else {
+			if(temp->next){
+				for (int i = 0; i < indentation; ++i)
+					printf("    "); // Print tabs for indentation
+				printf("|");
+			}
             printf("\n");
         }
 		
@@ -252,13 +261,15 @@ void hashtbl_print(HASHTBL *hashtbl) {
     hash_size n;
     struct hashnode_s *node;
     struct hashnode_s *temp;
-    printf("------------  ------------------ \n");
-    printf("Name          Type   			 \n");
-    printf("------------  ------------------ \n");
+	printf("\n------ -----\n");
+    printf("Symbol Table\n");
+    printf("------ -----\n");
+    printf("Name   Type\n");
+    printf("------ -----\n");
     for (n = 0; n < hashtbl->size; ++n) {
         node = hashtbl->nodes[n];
         while (node) {
-            printf("%-12s  ", node->key);
+            printf("%s: ", node->key);
             printSymbolTableEntry(node->type, node->isArray);
             if (node->fields) {
                 printFields(node->fields, 1); // Call to print nested fields with initial indentation of 1

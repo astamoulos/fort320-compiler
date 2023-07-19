@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "types.h"
 #include <stdlib.h>
+#include <string.h>
 
 Node* createNode(UndefVar data) {
     Node* newNode = (Node*)malloc(sizeof(Node));
@@ -77,6 +78,7 @@ void freeList(Node** head) {
 void freeFields(Node* fields) {
     Node* current = fields;
     Node* next;
+    
     while (current != NULL) {
         next = current->next;
         free(current);
