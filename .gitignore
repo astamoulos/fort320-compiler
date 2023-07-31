@@ -5,4 +5,5 @@ syntax.tab.h
 syntax.output
 a.out
 *.o
+.vscode
 settings.json
