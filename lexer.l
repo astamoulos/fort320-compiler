@@ -4,6 +4,7 @@
     #include <string.h>
     #include <math.h>
     #include "types.h"
+    #include "ast.h"
     #include "syntax.tab.h"
 
     #define flexdebug 0

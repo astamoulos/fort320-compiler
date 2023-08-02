@@ -3,7 +3,7 @@
     #include <stdlib.h>
     #include <string.h>
     #include "hashtbl.h"
-    
+    #include "ast.h"
     #define YYDEBUG 1
 
     extern FILE * yyin;
@@ -29,6 +29,7 @@
     DataType basictype;
     UndefVar undef_var;
     Node *list;
+    AST_Node* node;
 }
 
 // KEYWORDS
@@ -100,16 +101,17 @@
 %type <basictype> type
 %type <undef_var> undef_variable
 %type <list> vars fields field
+%type <node> declarations
 
 %%
 program :                   body END subprograms
                             ;
 body :                      declarations statements
                             ;
-declarations :              declarations type vars                                  {displayList($3); addToSymbolTable(&$3, $2, NULL); freeList(&$3); printf("list destroyed\n");}
+declarations :              declarations type vars                                  {$$ = new_ast_decl_node($2, &$3); displayList($3); addToSymbolTable(&$3, $2, NULL); freeList(&$3); printf("list destroyed\n");}
                             | declarations RECORD fields ENDREC vars                {displayList($3);  displayList($5); addToSymbolTable(&$5, RECORD_TYPE, $3); freeList(&$3); freeList(&$5); printf("list record destroyed\n");}
                             | declarations DATA vals
-                            | %empty
+                            | %empty    {}
                             ;
 type :                      INTEGER                                                 {$$ = INT_TYPE;} 
                             | REAL                                                  {$$ = REAL_TYPE;} 
