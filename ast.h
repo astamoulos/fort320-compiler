@@ -6,6 +6,7 @@
 typedef enum Node_Type {
 	BASIC_NODE,  // no special usage (for roots only)
 	// declarations
+	DECL_LIST_NODE,
 	DECL_NODE,   // declaration
 	CONST_NODE,  // constant
 	// statements
@@ -76,6 +77,13 @@ typedef struct AST_Node{
 }AST_Node;
 
 /* Declarations */
+typedef struct AST_Node_Decl_List{
+	enum Node_Type type; // node type
+	
+	struct AST_Node *left;
+	struct AST_Node *right;
+}AST_Node_Decl_List;
+
 typedef struct AST_Node_Decl{
 	enum Node_Type type; // node type
 	
@@ -83,7 +91,7 @@ typedef struct AST_Node_Decl{
 	int data_type;
 	
 	// symbol table entries of the variables
-	//list_t** names;
+	Node* names;
 }AST_Node_Decl;
 
 typedef struct AST_Node_Const{
@@ -255,7 +263,11 @@ typedef struct AST_Node_Return{
 /* The basic node */
 AST_Node *new_ast_node(Node_Type type, AST_Node *left, AST_Node *right); 	 // simple nodes
 /* Declarations */
-AST_Node *new_ast_decl_node(DataType data_type, Node **names);					 // declaration
+AST_Node *new_ast_decl_node(DataType data_type, Node *names);					 // declaration
 AST_Node *new_ast_const_node(int const_type, Value val);					 // constant
+AST_Node *new_ast_decl_list_node(AST_Node *left, AST_Node *right);
 /* ... */
+
+void ast_traversal(AST_Node *node);
+void ast_print_node(AST_Node *node, int indent);
 #endif

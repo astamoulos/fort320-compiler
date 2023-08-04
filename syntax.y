@@ -4,18 +4,21 @@
     #include <string.h>
     #include "hashtbl.h"
     #include "ast.h"
+    #include "ast_printer.h"
     #define YYDEBUG 1
 
     extern FILE * yyin;
     extern int yylex();
     extern void yyerror(const char *err);
     //SymbolTableEntry* make_entry(DataType type, int isArray);
-    void addToSymbolTable(Node** list, DataType type, Node* fields);
+    void addToSymbolTable(Node* list, DataType type, Node* fields);
     void addFieldsToSymbolTable(struct hashnode_s** curr_field, Node* fields);
     void free_fields(Node* fields);
+    AST_Node* ast;
 
     HASHTBL *hashtbl;
     int scope = 0;
+    Node *test;
 %}
 
 %define parse.error verbose
@@ -106,12 +109,12 @@
 %%
 program :                   body END subprograms
                             ;
-body :                      declarations statements
+body :                      declarations statements {ast_print_node($1, 0);}
                             ;
-declarations :              declarations type vars                                  {$$ = new_ast_decl_node($2, &$3); displayList($3); addToSymbolTable(&$3, $2, NULL); freeList(&$3); printf("list destroyed\n");}
-                            | declarations RECORD fields ENDREC vars                {displayList($3);  displayList($5); addToSymbolTable(&$5, RECORD_TYPE, $3); freeList(&$3); freeList(&$5); printf("list record destroyed\n");}
+declarations :              declarations type vars  {$$ = new_ast_decl_list_node($1 ,new_ast_decl_node($2, $3)); addToSymbolTable($3, $2, NULL); /*freeList(&$3);*/}
+                            | declarations RECORD fields ENDREC vars                {displayList($3);  displayList($5); addToSymbolTable($5, RECORD_TYPE, $3); freeList(&$3); freeList(&$5); printf("list record destroyed\n");}
                             | declarations DATA vals
-                            | %empty    {}
+                            | %empty    {$$ = new_ast_decl_list_node(NULL, NULL);}
                             ;
 type :                      INTEGER                                                 {$$ = INT_TYPE;} 
                             | REAL                                                  {$$ = REAL_TYPE;} 
@@ -119,7 +122,7 @@ type :                      INTEGER                                             
                             | CHARACTER                                             {$$ = CHARACTER_TYPE;} 
                             ;
 vars :                      vars COMMA undef_variable                               {insertAtEnd(&$$, $3);}
-                            | undef_variable                                        {$$ = createNode($1); }
+                            | undef_variable                                        {$$ = createNode($1);}
                             ;
 undef_variable :            ID LPAREN dims RPAREN                                   {$$.name = $1; $$.isArray = 1;}
                             | ID                                                    {$$.name = $1; $$.isArray = 0;}   
@@ -273,19 +276,18 @@ int main(int argc, char *argv[]) {
     }
 
     yyparse();
-    
     fclose(yyin);
     hashtbl_print(hashtbl);
     hashtbl_destroy(hashtbl);
     return 0;
 }
 
-void addToSymbolTable(Node** list, DataType type, Node* fields) {
-    Node* curr = *list;
+void addToSymbolTable(Node* list, DataType type, Node* fields) {
+    Node* curr = list;
     struct hashnode_s* node;
 
     while (curr != NULL) {
-        node = hashtbl_insert(hashtbl, curr->data.name, NULL, scope, type, curr->data.isArray);
+        node = hashtbl_insert(hashtbl, strdup(curr->data.name), NULL, scope, type, curr->data.isArray);
         
         if (fields) {
             printf("Adding fields\n");

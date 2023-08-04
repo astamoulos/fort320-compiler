@@ -5,6 +5,7 @@
     #include <math.h>
     #include "types.h"
     #include "ast.h"
+    #include "ast_printer.h"
     #include "syntax.tab.h"
 
     #define flexdebug 0

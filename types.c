@@ -34,7 +34,7 @@ void insertAtEnd(Node** head, UndefVar data) {
 
 // Function to display the linked list
 void displayList(Node* list) {
-    printf("Display list!\n");
+    //printf("Display list!\n");
     Node* curr = list;
 
     while (curr != NULL) {

@@ -1,5 +1,5 @@
-lexer: syntax.tab.c lex.yy.c hashtbl.o types.o ast.o
-	gcc syntax.tab.c lex.yy.c hashtbl.o types.o ast.o -lm
+lexer: syntax.tab.c lex.yy.c hashtbl.o types.o ast.o ast_printer.o
+	gcc syntax.tab.c lex.yy.c hashtbl.o types.o ast.o ast_printer.o -lm
 
 lex.yy.c: lexer.l
 	flex lexer.l
@@ -15,6 +15,9 @@ types.o: types.c types.h
 
 ast.o: ast.c ast.h
 	gcc -o ast.o -c ast.c
+
+ast_printer.o: ast_printer.c ast_printer.h
+	gcc -o ast_printer.o -c ast_printer.c
 
 clean:
 	rm lex.yy.c syntax.tab.c syntax.tab.h syntax.output *.o a.out 
