@@ -100,8 +100,14 @@ IDENTIFIER  [a-zA-Z][a-zA-Z0-9]*|_[a-zA-Z][a-zA-Z0-9]*((_?)[a-zA-Z0-9])*_
 ".OR."          {print_token(OROP); return OROP;}
 ".AND."         {print_token(ANDOP); return ANDOP;}
 ".NOT."         {print_token(NOTOP); return NOTOP;}
-".GT."|".GE."|".LT."|".LE."|".EQ."|".NE."  {print_token(RELOP); return RELOP;}
-"+"|"-"         {print_token(ADDOP); return ADDOP;}
+".GT."          {print_token(RELOP); yylval.intval = GREATER; return RELOP;}
+".GE."          {print_token(RELOP); yylval.intval = GREATER_EQUAL; return RELOP;}
+".LT."          {print_token(RELOP); yylval.intval = LESS; return RELOP;}
+".LE."          {print_token(RELOP); yylval.intval = LESS_EQUAL; return RELOP;}
+".EQ."          {print_token(RELOP); yylval.intval = EQUAL; return RELOP;}
+".NE."          {print_token(RELOP); yylval.intval = NOT_EQUAL; return RELOP;}
+"+"             {print_token(ADDOP); yylval.intval = ADD; return ADDOP;}
+"-"             {print_token(ADDOP); yylval.intval = SUB; return ADDOP;}
 "*"             {print_token(MULOP); return MULOP;}
 "/"             {print_token(DIVOP); return DIVOP;}
 "**"            {print_token(POWEROP); return POWEROP;}
