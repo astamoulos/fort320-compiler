@@ -27,6 +27,79 @@ AST_Node *new_ast_decl_node(DataType data_type, Node *names){
 	// return type-casted result
 	return (struct AST_Node *) v;
 }
+/* Expressions */
+AST_Node *new_ast_arithm_node(enum Arithm_op op, AST_Node *left, AST_Node *right){
+	// allocate memory
+	AST_Node_Arithm *v = malloc (sizeof (AST_Node_Arithm));
+	
+	// set entries
+	v->type = ARITHM_NODE;
+	v->op = op;
+	v->left = left;
+	v->right = right;
+	
+	// return type-casted result
+	return (struct AST_Node *) v;
+}
+
+AST_Node *new_ast_bool_node(enum Bool_op op, AST_Node *left, AST_Node *right){
+	// allocate memory
+	AST_Node_Bool *v = malloc (sizeof (AST_Node_Bool));
+	
+	// set entries
+	v->type = BOOL_NODE;
+	v->op = op;
+	v->left = left;
+	v->right = right;
+	
+	// return type-casted result
+	return (struct AST_Node *) v;
+}
+
+AST_Node *new_ast_rel_node(enum Rel_op op, AST_Node *left, AST_Node *right){
+	// allocate memory
+	AST_Node_Rel *v = malloc (sizeof (AST_Node_Rel));
+	
+	// set entries
+	v->type = REL_NODE;
+	v->op = op;
+	v->left = left;
+	v->right = right;
+	
+	// return type-casted result
+	return (struct AST_Node *) v;
+}
+
+/*
+AST_Node *new_ast_equ_node(enum Equ_op op, AST_Node *left, AST_Node *right){
+	// allocate memory
+	AST_Node_Equ *v = malloc (sizeof (AST_Node_Equ));
+	
+	// set entries
+	v->type = EQU_NODE;
+	v->op = op;
+	v->left = left;
+	v->right = right;
+	
+	// return type-casted result
+	return (struct AST_Node *) v;	
+}
+*/
+
+/*
+AST_Node *new_ast_ref_node(list_t *entry, int ref){
+	// allocate memory
+	AST_Node_Ref *v = malloc (sizeof (AST_Node_Ref));
+	
+	// set entries
+	v->type = REF_NODE;
+	v->entry = entry;
+	v->ref = ref;
+	
+	// return type-casted result
+	return (struct AST_Node *) v;	
+}
+*/
 
 /* Tree Traversal */
 
@@ -43,7 +116,7 @@ void ast_print_node(AST_Node *node, int indent){
 	AST_Node_Arithm *temp_arithm;
 	AST_Node_Bool *temp_bool;
 	AST_Node_Rel *temp_rel;
-	AST_Node_Equ *temp_equ;
+	//AST_Node_Equ *temp_equ;
 	AST_Node_Func_Decl *temp_func_decl;
 	AST_Node_Return *temp_return;
 	

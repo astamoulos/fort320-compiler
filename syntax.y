@@ -74,8 +74,8 @@
 %token OROP ".OR."
 %token ANDOP ".AND."
 %token NOTOP ".NOT."
-%token RELOP
-%token ADDOP "+ or -" 
+%token <intval> RELOP
+%token <intval> ADDOP "+ or -" 
 %token MULOP "*"
 %token DIVOP "/"
 %token POWEROP "**"
@@ -104,7 +104,7 @@
 %type <basictype> type
 %type <undef_var> undef_variable
 %type <list> vars fields field
-%type <node> declarations
+%type <node> declarations expression
 
 %%
 program :                   body END subprograms
@@ -187,18 +187,18 @@ variable :                  variable COLON ID                                   
 expressions :               expressions COMMA expression 
                             | expression 
                             ;
-expression :                expression OROP expression
-                            | expression ANDOP expression
-                            | expression RELOP expression
-                            | expression ADDOP expression
-                            | expression MULOP expression
-                            | expression DIVOP expression
-                            | expression POWEROP expression
-                            | NOTOP expression 
-                            | ADDOP expression
-                            | variable
-                            | constant
-                            | LPAREN expression RPAREN
+expression :                expression OROP expression      {$$ = new_ast_bool_node(OR, $1, $3);}
+                            | expression ANDOP expression   {$$ = new_ast_bool_node(AND, $1, $3);}
+                            | expression RELOP expression   {$$ = new_ast_rel_node($2, $1, $3);}
+                            | expression ADDOP expression   {$$ = new_ast_arithm_node($2, $1, $3);}
+                            | expression MULOP expression   {$$ = new_ast_arithm_node(MUL, $1, $3);}
+                            | expression DIVOP expression   {$$ = new_ast_arithm_node(DIV, $1, $3);}
+                            | expression POWEROP expression {$$ = new_ast_arithm_node(POW, $1, $3);}
+                            | NOTOP expression              {$$ = new_ast_bool_node(NOT, $2, NULL);}
+                            | ADDOP expression              {}
+                            | variable                      {}
+                            | constant                      {}
+                            | LPAREN expression RPAREN      {}
                             ;
 goto_statement :            GOTO label
                             | GOTO ID COMMA LPAREN labels RPAREN                    //{hashtbl_insert(hashtbl, $2, NULL, scope, current_type);}

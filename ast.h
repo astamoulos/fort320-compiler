@@ -37,6 +37,7 @@ typedef enum Arithm_op{
 	DIV , // / operator
 	INC, // ++ operator
 	DEC, // -- operator
+	POW, // ** operator
 }Arithm_op;
 
 typedef enum Bool_op{
@@ -49,13 +50,17 @@ typedef enum Rel_op{
 	GREATER,        // > operator
 	LESS,           // < operator
 	GREATER_EQUAL,  // >= operator
-	LESS_EQUAL     // <= operator
+	LESS_EQUAL,     // <= operator
+	EQUAL,    		// == operator
+	NOT_EQUAL 		// != operator
 }Rel_op;
 
+/*
 typedef enum Equ_op{
 	EQUAL,    // == operator
 	NOT_EQUAL // != operator
 }Equ_op;
+*/
 
 /* -------------------HELP STRUCTURES----------------------- */
 
@@ -227,7 +232,7 @@ typedef struct AST_Node_Rel{
 	struct AST_Node *left;  // left child
 	struct AST_Node *right; // right child
 }AST_Node_Rel;
-
+/*
 typedef struct AST_Node_Equ{
 	enum Node_Type type; // node type
 	
@@ -237,7 +242,7 @@ typedef struct AST_Node_Equ{
 	struct AST_Node *left;  // left child
 	struct AST_Node *right; // right child
 }AST_Node_Equ;
-
+*/
 /* Functions */
 typedef struct AST_Node_Func_Decl{
 	enum Node_Type type; // node type
@@ -266,8 +271,16 @@ AST_Node *new_ast_node(Node_Type type, AST_Node *left, AST_Node *right); 	 // si
 AST_Node *new_ast_decl_node(DataType data_type, Node *names);					 // declaration
 AST_Node *new_ast_const_node(int const_type, Value val);					 // constant
 AST_Node *new_ast_decl_list_node(AST_Node *left, AST_Node *right);
+/* Expressions */
+AST_Node *new_ast_arithm_node(enum Arithm_op op, AST_Node *left, AST_Node *right);
+AST_Node *new_ast_bool_node(enum Bool_op op, AST_Node *left, AST_Node *right);
+AST_Node *new_ast_rel_node(enum Rel_op op, AST_Node *left, AST_Node *right);
+//AST_Node *new_ast_equ_node(enum Equ_op op, AST_Node *left, AST_Node *right);
+//AST_Node *new_ast_ref_node(list_t *entry, int ref);
 /* ... */
 
 void ast_traversal(AST_Node *node);
 void ast_print_node(AST_Node *node, int indent);
+
+
 #endif
