@@ -63,8 +63,8 @@ IDENTIFIER  [a-zA-Z][a-zA-Z0-9]*|_[a-zA-Z][a-zA-Z0-9]*((_?)[a-zA-Z0-9])*_
 "RETURN"        {print_token(RETURN); return RETURN;}     
 
 {IDENTIFIER}    {print_token(ID); yylval.strval = strdup(yytext); return ID;} 
-{ICONST}        {print_token(ICONST); yylval.intval = str_to_int(yytext); return ICONST;}
-{RCONST}        {print_token(RCONST); yylval.floatval = str_to_float(yytext); return RCONST;}
+{ICONST}        {print_token(ICONST); yylval.val.ival = str_to_int(yytext); return ICONST;}
+{RCONST}        {print_token(RCONST); yylval.val.fval = str_to_float(yytext); return RCONST;}
 
 \"                  {BEGIN(STRING);}
 <STRING>\"          {BEGIN(INITIAL); printf("Found string '%s' \n", str_buf); strcpy(str_buf, ""); return STRING;}
@@ -91,8 +91,8 @@ IDENTIFIER  [a-zA-Z][a-zA-Z0-9]*|_[a-zA-Z][a-zA-Z0-9]*((_?)[a-zA-Z0-9])*_
 
 "$".*               {printf("Comment found\n");}
 
-'[ -~]'         {print_token(CCONST); yylval.charval = yytext[1]; return CCONST;} 
-'\\[nftrbv]'    {print_token(CCONST); yylval.charval = handle_escape_sequence(yytext[2]); return CCONST;}   
+'[ -~]'         {print_token(CCONST); yylval.val.cval = yytext[1]; return CCONST;} 
+'\\[nftrbv]'    {print_token(CCONST); yylval.val.cval = handle_escape_sequence(yytext[2]); return CCONST;}   
 
 ".TRUE."        {print_token(LCONST); return LCONST;}
 ".FALSE."       {print_token(LCONST); return LCONST;}

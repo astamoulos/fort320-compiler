@@ -130,6 +130,24 @@ struct hashnode_s* hashtbl_insert(HASHTBL *hashtbl, char *key, void *data ,int s
 	return node;
 }
 
+struct hashnode_s* hashtbl_find(HASHTBL *hashtbl, char *key, int scope){
+	struct hashnode_s *node;
+	hash_size hash=hashtbl->hashfunc(key)%hashtbl->size;
+
+	printf("\t\t\t\t\tHASHTBL_FIND(): KEY = %s, HASH = %ld, SCOPE = %d, ", key, hash, scope);
+
+	node=hashtbl->nodes[hash];
+	while(node) {
+		if(!strcmp(node->key, key) && (node->scope == scope)) {
+			printf("\t\t Symbol found\n");
+			return node;
+		}
+		node=node->next;
+	}	
+	printf("\t\t Symbol not found\n");
+	return NULL;
+}
+
 int hashtbl_remove(HASHTBL *hashtbl, const char *key,int scope)
 {
 	struct hashnode_s *node, *prevnode=NULL;

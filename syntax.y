@@ -24,6 +24,8 @@
 %define parse.error verbose
 
 %union{
+    Value val;
+
     int intval;
     float floatval;
     char charval;
@@ -31,7 +33,8 @@
     
     DataType basictype;
     UndefVar undef_var;
-    Node *list;
+    struct hashnode_s* symbol;
+    struct Node *list;
     AST_Node* node;
 }
 
@@ -65,10 +68,10 @@
 %token <strval> ID "Identifier"
 
 //Constants
-%token <intval> ICONST "ICONST"
-%token <floatval> RCONST "RCONST"
-%token LCONST "LCONST"
-%token <charval> CCONST "CCONST"
+%token <val> ICONST "ICONST"
+%token <val> RCONST "RCONST"
+%token <val> LCONST "LCONST"
+%token <val> CCONST "CCONST"
 
 //Operators
 %token OROP ".OR."
@@ -104,7 +107,8 @@
 %type <basictype> type
 %type <undef_var> undef_variable
 %type <list> vars fields field
-%type <node> declarations expression
+%type <node> declarations expression constant
+%type <symbol> variable
 
 %%
 program :                   body END subprograms
@@ -155,7 +159,10 @@ value :                     repeat MULOP ADDOP constant
                             ;
 repeat :                    ICONST | %empty
                             ;
-constant :                  ICONST | RCONST | LCONST | CCONST
+constant :                  ICONST      {$$ = new_ast_const_node(INT_TYPE, $1);}
+                            | RCONST    {$$ = new_ast_const_node(REAL_TYPE, $1);}
+                            | LCONST    {$$ = new_ast_const_node(INT_TYPE, $1);}
+                            | CCONST    {$$ = new_ast_const_node(CHARACTER_TYPE, $1);}
                             ;
 statements :                statements labeled_statement
                             | labeled_statement
@@ -182,7 +189,7 @@ assignment :                variable ASSIGN expression
                             ;
 variable :                  variable COLON ID                                       //{hashtbl_insert(hashtbl, $3, NULL, scope, current_type);}
                             | variable LPAREN expressions RPAREN 
-                            | ID                                                    //{hashtbl_insert(hashtbl, $1, NULL, scope, current_type);}
+                            | ID                                    {$$ = hashtbl_find(hashtbl, $1, scope);}
                             ;
 expressions :               expressions COMMA expression 
                             | expression 
@@ -196,9 +203,9 @@ expression :                expression OROP expression      {$$ = new_ast_bool_n
                             | expression POWEROP expression {$$ = new_ast_arithm_node(POW, $1, $3);}
                             | NOTOP expression              {$$ = new_ast_bool_node(NOT, $2, NULL);}
                             | ADDOP expression              {}
-                            | variable                      {}
-                            | constant                      {}
-                            | LPAREN expression RPAREN      {}
+                            | variable                      {$$ = new_ast_ref_node($1);}
+                            | constant                      {$$ = $1;}
+                            | LPAREN expression RPAREN      {$$ = $2;}
                             ;
 goto_statement :            GOTO label
                             | GOTO ID COMMA LPAREN labels RPAREN                    //{hashtbl_insert(hashtbl, $2, NULL, scope, current_type);}

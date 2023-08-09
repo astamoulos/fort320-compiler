@@ -40,6 +40,7 @@ typedef struct hashtbl {
 HASHTBL *hashtbl_create(hash_size size, hash_size (*hashfunc)(const char *));
 void hashtbl_destroy(HASHTBL *hashtbl);
 struct hashnode_s* hashtbl_insert(HASHTBL *hashtbl, char *key, void *data, int scope, DataType type, int isArray);
+struct hashnode_s* hashtbl_find(HASHTBL *hashtbl, char *key, int scope);
 int hashtbl_remove(HASHTBL *hashtbl, const char *key,int scope);
 void *hashtbl_get(HASHTBL *hashtbl, int scope);
 void printSymbolTableEntry(DataType type, int isArray);

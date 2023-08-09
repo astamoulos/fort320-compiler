@@ -70,6 +70,19 @@ AST_Node *new_ast_rel_node(enum Rel_op op, AST_Node *left, AST_Node *right){
 	return (struct AST_Node *) v;
 }
 
+AST_Node *new_ast_const_node(int const_type, Value val){
+	//allcate memory
+	AST_Node_Const *v = malloc (sizeof (AST_Node_Const));
+
+	//set entries
+	v->type = CONST_NODE;
+	v->const_type = const_type;
+	v->val = val;
+
+	// return type-casted result
+	return (struct AST_Node *) v;
+}
+
 /*
 AST_Node *new_ast_equ_node(enum Equ_op op, AST_Node *left, AST_Node *right){
 	// allocate memory
@@ -86,20 +99,19 @@ AST_Node *new_ast_equ_node(enum Equ_op op, AST_Node *left, AST_Node *right){
 }
 */
 
-/*
-AST_Node *new_ast_ref_node(list_t *entry, int ref){
+
+AST_Node *new_ast_ref_node(struct hashnode_s *entry){
 	// allocate memory
 	AST_Node_Ref *v = malloc (sizeof (AST_Node_Ref));
 	
 	// set entries
 	v->type = REF_NODE;
 	v->entry = entry;
-	v->ref = ref;
-	
+
 	// return type-casted result
 	return (struct AST_Node *) v;	
 }
-*/
+
 
 /* Tree Traversal */
 
