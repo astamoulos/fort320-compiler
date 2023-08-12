@@ -107,13 +107,12 @@
 %type <basictype> type
 %type <undef_var> undef_variable
 %type <list> vars fields field
-%type <node> declarations expression constant
-%type <symbol> variable
+%type <node> declarations expression constant variable assignment
 
 %%
 program :                   body END subprograms
                             ;
-body :                      declarations statements {ast_print_node($1, 0);}
+body :                      declarations statements {/*ast_print_node($1, 0);*/}
                             ;
 declarations :              declarations type vars  {$$ = new_ast_decl_list_node($1 ,new_ast_decl_node($2, $3)); addToSymbolTable($3, $2, NULL); /*freeList(&$3);*/}
                             | declarations RECORD fields ENDREC vars                {displayList($3);  displayList($5); addToSymbolTable($5, RECORD_TYPE, $3); freeList(&$3); freeList(&$5); printf("list record destroyed\n");}
@@ -184,12 +183,12 @@ simple_statement :          assignment
                             | RETURN
                             | STOP
                             ;
-assignment :                variable ASSIGN expression
+assignment :                variable ASSIGN expression {/*$$ = new_ast_assign_node($1, $3);*/}
                             | variable ASSIGN STRING
                             ;
-variable :                  variable COLON ID                                       //{hashtbl_insert(hashtbl, $3, NULL, scope, current_type);}
-                            | variable LPAREN expressions RPAREN 
-                            | ID                                    {$$ = hashtbl_find(hashtbl, $1, scope);}
+variable :                  variable COLON ID       {printf("struct\n");}                                //{hashtbl_insert(hashtbl, $3, NULL, scope, current_type);}
+                            | variable LPAREN expressions RPAREN    {printf("array\n");}
+                            | ID                                    {$$ = new_ast_ref_node(hashtbl_find(hashtbl, $1, scope));}
                             ;
 expressions :               expressions COMMA expression 
                             | expression 
@@ -197,13 +196,13 @@ expressions :               expressions COMMA expression
 expression :                expression OROP expression      {$$ = new_ast_bool_node(OR, $1, $3);}
                             | expression ANDOP expression   {$$ = new_ast_bool_node(AND, $1, $3);}
                             | expression RELOP expression   {$$ = new_ast_rel_node($2, $1, $3);}
-                            | expression ADDOP expression   {$$ = new_ast_arithm_node($2, $1, $3);}
+                            | expression ADDOP expression   {$$ = new_ast_arithm_node($2, $1, $3); }
                             | expression MULOP expression   {$$ = new_ast_arithm_node(MUL, $1, $3);}
                             | expression DIVOP expression   {$$ = new_ast_arithm_node(DIV, $1, $3);}
                             | expression POWEROP expression {$$ = new_ast_arithm_node(POW, $1, $3);}
                             | NOTOP expression              {$$ = new_ast_bool_node(NOT, $2, NULL);}
                             | ADDOP expression              {}
-                            | variable                      {$$ = new_ast_ref_node($1);}
+                            | variable                      {$$ = $1;}
                             | constant                      {$$ = $1;}
                             | LPAREN expression RPAREN      {$$ = $2;}
                             ;
@@ -284,7 +283,7 @@ int main(int argc, char *argv[]) {
 
     yyparse();
     fclose(yyin);
-    hashtbl_print(hashtbl);
+    //hashtbl_print(hashtbl);
     hashtbl_destroy(hashtbl);
     return 0;
 }
