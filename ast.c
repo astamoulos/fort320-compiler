@@ -3,6 +3,7 @@
 #include <string.h>
 #include "ast.h"
 #include "ast_printer.h"
+#include "hashtbl.h"
 
 AST_Node *new_ast_decl_list_node(AST_Node*  left, AST_Node* right){
     // allocate memory
@@ -128,6 +129,7 @@ void ast_print_node(AST_Node *node, int indent){
 	AST_Node_Arithm *temp_arithm;
 	AST_Node_Bool *temp_bool;
 	AST_Node_Rel *temp_rel;
+	AST_Node_Ref *temp_ref;
 	//AST_Node_Equ *temp_equ;
 	AST_Node_Func_Decl *temp_func_decl;
 	AST_Node_Return *temp_return;
@@ -182,8 +184,86 @@ void ast_print_node(AST_Node *node, int indent){
 			printf("\n");
 			//printf("Declaration Node of data-type %d for names\n", temp_decl->data_type);
 			break;
+		case ARITHM_NODE:
+			temp_arithm = (struct AST_Node_Arithm *) node;
+			print_indent(indent);
+			switch (temp_arithm->op){
+			case ADD:
+				/* code */
+				printf("ADD\n");
+				break;
+			case SUB:
+				/* code */
+				printf("SUB\n");
+				break;
+			case MUL:
+				/* code */
+				printf("MUL\n");
+				break;
+			case DIV:
+				/* code */
+				printf("DIV\n");
+				break;
+			case POW:
+				/* code */
+				printf("POW\n");
+				break;
+			default:
+				break;
+			}
+			indent ++;
+			ast_print_node(temp_arithm->left, indent);
+			ast_print_node(temp_arithm->right, indent);
+			break;
+		case BOOL_NODE:
+			temp_bool = (struct AST_Node_Bool *) node;
+			print_indent(indent);
+			switch (temp_bool->op){
+			case OR:
+				printf("OR");
+				break;
+			case AND:
+				printf("AND");
+				break;
+			case NOT:
+				printf("NOT");
+				break;
+			default:
+				break;
+			}
+			printf("\n");
+			indent ++;
+			ast_print_node(temp_bool->left, indent);
+			if(temp_bool->op != NOT)
+				ast_print_node(temp_bool->right, indent);
+			break;
+		case CONST_NODE:
+			temp_const = (struct AST_Node_Const *) node;
+			print_indent(indent);
+			printf("const ");
+			switch (temp_const->const_type){
+			case INT_TYPE:
+				printf("%d", temp_const->val.ival);
+				break;
+			case REAL_TYPE:
+				printf("%lf", temp_const->val.fval);
+				break;
+			case CHARACTER_TYPE:
+				printf("%C", temp_const->val.cval);
+				break;
+			default:
+				break;
+			}
+			printf("\n");
+			break;
+		case REF_NODE:
+			temp_ref = (struct AST_Node_Ref *) node;
+			print_indent(indent);
+			printf("id ");
+			printf("%s\n", temp_ref->entry->key);
+			break;
 		default: /* wrong choice case */
-			fprintf(stderr, "Error in node selection!\n");
-			exit(1);
+			fprintf(stderr, "Error in node selection %d!\n", node->type);
+			//exit(1);
 	}
 }
