@@ -166,8 +166,8 @@ typedef struct AST_Node_While{
 typedef struct AST_Node_Assign{
 	enum Node_Type type; // node type
 	
-	// symbol table entry
-	//list_t *entry;
+	// variable
+	struct AST_Node *assign_var;
 	
 	// assignment value
 	struct AST_Node *assign_val;
@@ -283,16 +283,18 @@ AST_Node *new_ast_node(Node_Type type, AST_Node *left, AST_Node *right); 	 // si
 AST_Node *new_ast_decl_node(DataType data_type, Node *names);					 // declaration
 AST_Node *new_ast_const_node(int const_type, Value val);					 // constant
 AST_Node *new_ast_decl_list_node(AST_Node *left, AST_Node *right);
+
+/* Statements */
+AST_Node *new_ast_assign_node(AST_Node *left, AST_Node *right);
 /* Expressions */
 AST_Node *new_ast_arithm_node(enum Arithm_op op, AST_Node *left, AST_Node *right);
 AST_Node *new_ast_bool_node(enum Bool_op op, AST_Node *left, AST_Node *right);
 AST_Node *new_ast_rel_node(enum Rel_op op, AST_Node *left, AST_Node *right);
+
 //AST_Node *new_ast_equ_node(enum Equ_op op, AST_Node *left, AST_Node *right);
 AST_Node *new_ast_ref_node(struct hashnode_s *entry);
 /* ... */
 
 void ast_traversal(AST_Node *node);
-void ast_print_node(AST_Node *node, int indent);
-
 
 #endif

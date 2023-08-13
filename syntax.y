@@ -183,7 +183,7 @@ simple_statement :          assignment
                             | RETURN
                             | STOP
                             ;
-assignment :                variable ASSIGN expression {/*$$ = new_ast_assign_node($1, $3);*/}
+assignment :                variable ASSIGN expression {$$ = new_ast_assign_node($1, $3); ast_print_node($$, 0);}
                             | variable ASSIGN STRING
                             ;
 variable :                  variable COLON ID       {printf("struct\n");}                                //{hashtbl_insert(hashtbl, $3, NULL, scope, current_type);}
