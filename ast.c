@@ -38,6 +38,14 @@ AST_Node *new_ast_assign_node(AST_Node *left, AST_Node *right){
 	v->assign_val = right;
 }
 
+AST_Node *new_ast_if_node(AST_Node *left, AST_Node *right){
+	AST_Node_If *v = malloc(sizeof(AST_Node_If));
+
+	v->type = IF_NODE;
+	v->condition = left;
+	v->branch = right;
+}
+
 /* Expressions */
 AST_Node *new_ast_arithm_node(enum Arithm_op op, AST_Node *left, AST_Node *right){
 	// allocate memory

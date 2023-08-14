@@ -141,6 +141,35 @@ void ast_print_node(AST_Node *node, int indent){
 			if(temp_bool->op != NOT)
 				ast_print_node(temp_bool->right, indent);
 			break;
+		case REL_NODE:
+			temp_rel = (struct AST_Node_Rel *)node;
+			print_indent(indent);
+			switch (temp_rel->op){
+			case GREATER:
+				printf("GT");
+				break;
+			case GREATER_EQUAL:
+				printf("GE");
+				break;
+			case LESS:
+				printf("LT");
+				break;
+			case LESS_EQUAL:
+				printf("LE");
+				break;
+			case EQUAL:
+				printf("EQ");
+				break;
+			case NOT_EQUAL:
+				printf("NE");
+			default:
+				break;
+			}
+			printf("\n");
+			indent ++;
+			ast_print_node(temp_rel->left, indent);
+			ast_print_node(temp_rel->right, indent);
+			break;
 		case CONST_NODE:
 			temp_const = (struct AST_Node_Const *) node;
 			print_indent(indent);
@@ -173,6 +202,14 @@ void ast_print_node(AST_Node *node, int indent){
 			indent++;
 			ast_print_node(temp_assign->assign_var, indent);
 			ast_print_node(temp_assign->assign_val, indent);
+			break;
+		case IF_NODE:
+			temp_if = (struct AST_Node_If *) node;
+			print_indent(indent);
+			printf("if\n");
+			indent++;
+			ast_print_node(temp_if->condition, indent);
+			ast_print_node(temp_if->branch, indent);
 			break;
 		default: /* wrong choice case */
 			fprintf(stderr, "Error in node selection %d!\n", node->type);

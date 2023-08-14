@@ -118,13 +118,8 @@ typedef struct AST_Node_If{
 	struct AST_Node *condition;
 	
 	// if branch
-	struct AST_Node *if_branch;
-	
-	// else if branches
-	struct AST_Node **elsif_branches;
-	
-	// else branch
-	struct AST_Node *else_branch;
+	struct AST_Node *branch;
+
 }AST_Node_If;
 
 typedef struct AST_Node_Elsif{
@@ -286,6 +281,7 @@ AST_Node *new_ast_decl_list_node(AST_Node *left, AST_Node *right);
 
 /* Statements */
 AST_Node *new_ast_assign_node(AST_Node *left, AST_Node *right);
+AST_Node *new_ast_if_node(AST_Node *left, AST_Node *right);
 /* Expressions */
 AST_Node *new_ast_arithm_node(enum Arithm_op op, AST_Node *left, AST_Node *right);
 AST_Node *new_ast_bool_node(enum Bool_op op, AST_Node *left, AST_Node *right);

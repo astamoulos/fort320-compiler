@@ -107,7 +107,7 @@
 %type <basictype> type
 %type <undef_var> undef_variable
 %type <list> vars fields field
-%type <node> declarations expression constant variable assignment
+%type <node> declarations expression constant variable assignment simple_statement if_statement
 
 %%
 program :                   body END subprograms
@@ -174,16 +174,16 @@ label :                     ICONST
 statement :                 simple_statement
                             | compound_statement
                             ;
-simple_statement :          assignment
-                            | goto_statement
-                            | if_statement
-                            | subroutine_call
-                            | io_statement
-                            | CONTINUE
-                            | RETURN
-                            | STOP
+simple_statement :          assignment          {$$ = $1;}
+                            | goto_statement    {}
+                            | if_statement      {}
+                            | subroutine_call   {}
+                            | io_statement      {}
+                            | CONTINUE          {}
+                            | RETURN            {}
+                            | STOP              {}
                             ;
-assignment :                variable ASSIGN expression {$$ = new_ast_assign_node($1, $3); ast_print_node($$, 0);}
+assignment :                variable ASSIGN expression {$$ = new_ast_assign_node($1, $3);}
                             | variable ASSIGN STRING
                             ;
 variable :                  variable COLON ID       {printf("struct\n");}                                //{hashtbl_insert(hashtbl, $3, NULL, scope, current_type);}
@@ -212,8 +212,8 @@ goto_statement :            GOTO label
 labels :                    labels COMMA label
                             | label
                             ;
-if_statement :              IF LPAREN expression RPAREN label COMMA label COMMA label
-                            | IF LPAREN expression RPAREN simple_statement
+if_statement :              IF LPAREN expression RPAREN label COMMA label COMMA label {}
+                            | IF LPAREN expression RPAREN simple_statement  {$$ = new_ast_if_node($3, $5); ast_print_node($$, 0);}
                             ;
 subroutine_call :           CALL variable
                             ;
