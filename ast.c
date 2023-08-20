@@ -130,3 +130,34 @@ AST_Node *new_ast_ref_node(struct hashnode_s *entry){
 	// return type-casted result
 	return (struct AST_Node *) v;	
 }
+
+AST_Node *new_ast_label_node(int label){
+	AST_Node_Label *v = malloc(sizeof(AST_Node_Label));
+
+	v->type = LABEL_NODE;
+	v->label = label;
+
+	return (struct AST_Node *) v;
+}
+
+AST_Node *new_ast_labeled_stm_node(AST_Node *label, AST_Node *stm){
+	AST_Node_Labeled_Stm *v = malloc(sizeof(AST_Node_Labeled_Stm));
+
+	v->type = LABELED_STM_NODE;
+	v->label = label;
+	v->stm = stm;
+
+	return (struct AST_Node *) v;
+}
+
+AST_Node *new_ast_arithm_if_node(AST_Node *expr, AST_Node *label1, AST_Node *label2, AST_Node *label3){
+	AST_Node_Arithm_If *v = malloc(sizeof(AST_Node_Arithm_If));
+
+	v->type = ARITHM_IF_NODE;
+	v->expr = expr;
+	v->label1 = label1;
+	v->label2 = label2;
+	v->label3 = label3;
+
+	return (struct AST_Node *) v;
+}

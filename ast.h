@@ -10,6 +10,7 @@ typedef enum Node_Type {
 	DECL_NODE,   // declaration
 	CONST_NODE,  // constant
 	// statements
+	ARITHM_IF_NODE,
 	IF_NODE,     // if statement
 	ELSIF_NODE,  // else if branch
 	FOR_NODE,    // for statement
@@ -27,6 +28,9 @@ typedef enum Node_Type {
 	// functions
 	FUNC_DECL,   // function declaration
 	RETURN_NODE, // return statement of functions
+	// other
+	LABEL_NODE,
+	LABELED_STM_NODE,
 }Node_Type;
 
 /* --------------------OPERATOR TYPES----------------------- */
@@ -271,6 +275,29 @@ typedef struct AST_Node_Return{
 	struct AST_Node *ret_val;
 }AST_Node_Return;
 
+typedef struct AST_Node_Label{
+	enum Node_Type type; // node type
+	
+	// label value;
+	int label;
+}AST_Node_Label;
+
+typedef struct AST_Node_Labeled_Stm{
+	enum Node_Type type; // node type
+	
+	struct AST_Node *label;
+	struct AST_Node *stm;
+}AST_Node_Labeled_Stm;
+
+typedef struct AST_Node_Arithm_If{
+	enum Node_Type type; // node type
+	
+	struct AST_Node *expr;
+	struct AST_Node *label1;
+	struct AST_Node *label2;
+	struct AST_Node *label3;
+}AST_Node_Arithm_If;
+
 /* ------------------AST NODE MANAGEMENT-------------------- */
 /* The basic node */
 AST_Node *new_ast_node(Node_Type type, AST_Node *left, AST_Node *right); 	 // simple nodes
@@ -289,6 +316,11 @@ AST_Node *new_ast_rel_node(enum Rel_op op, AST_Node *left, AST_Node *right);
 
 //AST_Node *new_ast_equ_node(enum Equ_op op, AST_Node *left, AST_Node *right);
 AST_Node *new_ast_ref_node(struct hashnode_s *entry);
+
+/* Label */
+AST_Node *new_ast_label_node(int label);
+AST_Node *new_ast_labeled_stm_node(AST_Node *label, AST_Node *stm);
+AST_Node *new_ast_arithm_if_node(AST_Node *EXPR, AST_Node *label1, AST_Node *label2, AST_Node *label3);
 /* ... */
 
 void ast_traversal(AST_Node *node);

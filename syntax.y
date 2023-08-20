@@ -107,7 +107,8 @@
 %type <basictype> type
 %type <undef_var> undef_variable
 %type <list> vars fields field
-%type <node> declarations expression constant variable assignment simple_statement if_statement
+%type <node> declarations expression constant variable assignment simple_statement if_statement label statement
+%type <node> labeled_statement
 
 %%
 program :                   body END subprograms
@@ -166,17 +167,17 @@ constant :                  ICONST      {$$ = new_ast_const_node(INT_TYPE, $1);}
 statements :                statements labeled_statement
                             | labeled_statement
                             ;
-labeled_statement :         label statement
-                            | statement
+labeled_statement :         label statement {$$ = new_ast_labeled_stm_node($1, $2); ast_print_node($$, 0);}
+                            | statement {$$ = $1; ast_print_node($$, 0);}
                             ;
-label :                     ICONST
+label :                     ICONST      {$$ = new_ast_label_node($1.ival);}
                             ;
-statement :                 simple_statement
-                            | compound_statement
+statement :                 simple_statement        {$$ = $1;}
+                            | compound_statement    {}
                             ;
 simple_statement :          assignment          {$$ = $1;}
                             | goto_statement    {}
-                            | if_statement      {}
+                            | if_statement      {$$ = $1;}
                             | subroutine_call   {}
                             | io_statement      {}
                             | CONTINUE          {}
@@ -212,8 +213,8 @@ goto_statement :            GOTO label
 labels :                    labels COMMA label
                             | label
                             ;
-if_statement :              IF LPAREN expression RPAREN label COMMA label COMMA label {}
-                            | IF LPAREN expression RPAREN simple_statement  {$$ = new_ast_if_node($3, $5); ast_print_node($$, 0);}
+if_statement :              IF LPAREN expression RPAREN label COMMA label COMMA label {$$ = new_ast_arithm_if_node($3, $5, $7, $9);}
+                            | IF LPAREN expression RPAREN simple_statement  {$$ = new_ast_if_node($3, $5);}
                             ;
 subroutine_call :           CALL variable
                             ;

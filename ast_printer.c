@@ -37,7 +37,10 @@ void ast_print_node(AST_Node *node, int indent){
 	//AST_Node_Equ *temp_equ;
 	AST_Node_Func_Decl *temp_func_decl;
 	AST_Node_Return *temp_return;
-	
+	AST_Node_Label *temp_label;
+	AST_Node_Labeled_Stm *temp_labeled_stm;
+	AST_Node_Arithm_If *temp_arithm_if;
+
 	switch(node->type){
 		case BASIC_NODE:
 			printf("Basic Node\n");
@@ -210,6 +213,29 @@ void ast_print_node(AST_Node *node, int indent){
 			indent++;
 			ast_print_node(temp_if->condition, indent);
 			ast_print_node(temp_if->branch, indent);
+			break;
+		case LABEL_NODE:
+			temp_label = (struct AST_Node_Label *) node;
+			print_indent(indent);
+			printf("label %d\n", temp_label->label);
+			break;
+		case LABELED_STM_NODE:
+			temp_labeled_stm = (struct AST_Node_Labeled_Stm *) node;
+			print_indent(indent);
+			printf("labeled_stm\n");
+			indent++;
+			ast_print_node(temp_labeled_stm->label, indent);
+			ast_print_node(temp_labeled_stm->stm, indent);
+			break;
+		case ARITHM_IF_NODE:
+			temp_arithm_if = (struct AST_Node_Arithm_If *) node;
+			print_indent(indent);
+			printf("arithm_if\n");
+			indent++;
+			ast_print_node(temp_arithm_if->expr, indent);
+			ast_print_node(temp_arithm_if->label1, indent);
+			ast_print_node(temp_arithm_if->label2, indent);
+			ast_print_node(temp_arithm_if->label3, indent);
 			break;
 		default: /* wrong choice case */
 			fprintf(stderr, "Error in node selection %d!\n", node->type);
