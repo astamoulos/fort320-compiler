@@ -27,7 +27,7 @@
 %option yylineno
 %option noyywrap
 
-%x STRING
+%x STRINGS
 
 ICONST      (0[bB][1][01]*)|(0[hH][1-9A-F][0-9A-F]*)|(0|[1-9][0-9]*)
 BINCONST    (0[bB])(1[01]*)?\.(0*1+[01]*|0)
@@ -66,11 +66,11 @@ IDENTIFIER  [a-zA-Z][a-zA-Z0-9]*|_[a-zA-Z][a-zA-Z0-9]*((_?)[a-zA-Z0-9])*_
 {ICONST}        {print_token(ICONST); yylval.val.ival = str_to_int(yytext); return ICONST;}
 {RCONST}        {print_token(RCONST); yylval.val.fval = str_to_float(yytext); return RCONST;}
 
-\"                  {BEGIN(STRING);}
-<STRING>\"          {BEGIN(INITIAL); printf("Found string '%s' \n", str_buf); strcpy(str_buf, ""); return STRING;}
-<STRING>(\\\n|\\\r\n) {/* Ignore escaped newline characters */}
-<STRING>(\n|\r\n)   {yyerror("New line found without \\ \n");}
-<STRING>\\.|[^|\\]  {
+\"                  {BEGIN(STRINGS);}
+<STRINGS>\"          {BEGIN(INITIAL); printf("Found string '%s' \n", str_buf); strcpy(str_buf, ""); return STRING;}
+<STRINGS>(\\\n|\\\r\n) {/* Ignore escaped newline characters */}
+<STRINGS>(\n|\r\n)   {yyerror("New line found without \\ \n");}
+<STRINGS>\\.|[^|\\]  {
                         if (strlen(yytext) == 2) {
                             switch (yytext[1]) {
                                 case 'n': strcat(str_buf, "\n"); break;
@@ -85,8 +85,8 @@ IDENTIFIER  [a-zA-Z][a-zA-Z0-9]*|_[a-zA-Z][a-zA-Z0-9]*((_?)[a-zA-Z0-9])*_
                             strcat(str_buf, yytext);
                         }
                     }
-<STRING><<EOF>>     {yyerror("End of string without closing it\n");}
-<STRING>.           {yyerror("Found unrecognized character\n");}
+<STRINGS><<EOF>>     {yyerror("End of string without closing it\n");}
+<STRINGS>.           {yyerror("Found unrecognized character\n");}
 
 
 "$".*               {printf("Comment found\n");}
