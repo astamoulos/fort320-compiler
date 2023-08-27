@@ -33,6 +33,8 @@ typedef enum Node_Type {
 	LABELED_STM_NODE,
 	GOTO_NODE,
 	GOTO_CALC_NODE,
+	BRANCH_NODE,
+	BODY_NODE,
 }Node_Type;
 
 /* --------------------OPERATOR TYPES----------------------- */
@@ -312,6 +314,20 @@ typedef struct AST_Node_Goto_Calc{
 	struct AST_Node *label;
 }AST_Node_Goto_Calc;
 
+typedef struct AST_Node_Branch{
+	enum Node_Type type; // node type
+
+	struct AST_Node *expr;
+	struct AST_Node *body;
+	struct AST_Node *tail;
+}AST_Node_Branch;
+
+typedef struct AST_Node_Body{
+	enum Node_Type type; // node type
+
+	struct AST_Node *decl;
+	struct AST_Node *expr;
+}AST_Node_Body;
 
 /* ------------------AST NODE MANAGEMENT-------------------- */
 /* The basic node */
@@ -338,7 +354,9 @@ AST_Node *new_ast_labeled_stm_node(AST_Node *label, AST_Node *stm);
 AST_Node *new_ast_arithm_if_node(AST_Node *EXPR, AST_Node *label1, AST_Node *label2, AST_Node *label3);
 /* ... */
 AST_Node *new_ast_goto_node(AST_Node *label);
-
+AST_Node *new_ast_branch_node(AST_Node *expr, AST_Node *body, AST_Node *tail);
+AST_Node *new_ast_body_node(AST_Node *decl, AST_Node *expr);
+/**/
 void ast_traversal(AST_Node *node);
 
 #endif

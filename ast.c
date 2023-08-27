@@ -170,3 +170,24 @@ AST_Node *new_ast_goto_node(AST_Node *label){
 
 	return (struct AST_Node *) v;
 }
+
+AST_Node *new_ast_branch_node(AST_Node *expr, AST_Node *body, AST_Node *tail){
+	AST_Node_Branch *v = malloc(sizeof(AST_Node_Branch));
+
+	v->type = BRANCH_NODE;
+	v->expr = expr;
+	v->body = body;
+	v->tail = tail;
+
+	return (struct AST_Node *) v;
+}
+
+AST_Node *new_ast_body_node(AST_Node *decl, AST_Node *expr){
+	AST_Node_Body *v = malloc(sizeof(AST_Node_Body));
+
+	v->type = BODY_NODE;
+	v->decl = decl;
+	v->expr = expr;
+
+	return (struct AST_Node *) v;
+}

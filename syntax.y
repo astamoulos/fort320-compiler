@@ -108,12 +108,12 @@
 %type <undef_var> undef_variable
 %type <list> vars fields field
 %type <node> declarations expression constant variable assignment simple_statement if_statement label statement
-%type <node> labeled_statement goto_statement
+%type <node> labeled_statement goto_statement branch_statement tail body compound_statement
 
 %%
 program :                   body END subprograms
                             ;
-body :                      declarations statements {/*ast_print_node($1, 0);*/}
+body :                      declarations statements {ast_print_node($1, 0);}
                             ;
 declarations :              declarations type vars  {$$ = new_ast_decl_list_node($1 ,new_ast_decl_node($2, $3)); addToSymbolTable($3, $2, NULL); /*freeList(&$3);*/}
                             | declarations RECORD fields ENDREC vars                {displayList($3);  displayList($5); addToSymbolTable($5, RECORD_TYPE, $3); freeList(&$3); freeList(&$5); printf("list record destroyed\n");}
@@ -167,13 +167,13 @@ constant :                  ICONST      {$$ = new_ast_const_node(INT_TYPE, $1);}
 statements :                statements labeled_statement
                             | labeled_statement
                             ;
-labeled_statement :         label statement {$$ = new_ast_labeled_stm_node($1, $2); ast_print_node($$, 0);}
+labeled_statement :         label statement {$$ = new_ast_labeled_stm_node($1, $2);}
                             | statement {$$ = $1;}
                             ;
 label :                     ICONST      {$$ = new_ast_label_node($1.ival);}
                             ;
 statement :                 simple_statement        {$$ = $1;}
-                            | compound_statement    {}
+                            | compound_statement    {$$ = $1;}
                             ;
 simple_statement :          assignment          {$$ = $1;}
                             | goto_statement    {$$ = $1;}
@@ -208,7 +208,7 @@ expression :                expression OROP expression      {$$ = new_ast_bool_n
                             | LPAREN expression RPAREN      {$$ = $2;}
                             ;
 goto_statement :            GOTO label                      {$$ = new_ast_goto_node($2);}
-                            | GOTO ID COMMA LPAREN labels RPAREN                    //{hashtbl_insert(hashtbl, $2, NULL, scope, current_type);}
+                            | GOTO ID COMMA LPAREN labels RPAREN     {}               //{hashtbl_insert(hashtbl, $2, NULL, scope, current_type);}
                             ;
 labels :                    labels COMMA label
                             | label
@@ -239,13 +239,13 @@ write_item :                expression
                             | LPAREN write_list COMMA ID ASSIGN iter_space RPAREN   //{hashtbl_insert(hashtbl, $4, NULL, scope, current_type);}
                             | STRING
                             ;
-compound_statement :        branch_statement
-                            | loop_statement
+compound_statement :        branch_statement {$$ = $1;}
+                            | loop_statement {}
                             ;
-branch_statement :          IF LPAREN expression RPAREN THEN body tail
+branch_statement :          IF LPAREN expression RPAREN THEN body tail {$$ = new_ast_branch_node($3, $6, $7);}
                             ;
-tail :                      ELSE body ENDIF
-                            | ENDIF
+tail :                      ELSE body ENDIF {$$ = $2;}
+                            | ENDIF         {$$ = NULL;}
                             ;
 loop_statement :            DO ID ASSIGN iter_space body ENDDO                      //{hashtbl_insert(hashtbl, $2, NULL, scope, current_type);}
                             ;
