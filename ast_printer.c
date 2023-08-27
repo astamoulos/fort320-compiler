@@ -40,6 +40,7 @@ void ast_print_node(AST_Node *node, int indent){
 	AST_Node_Label *temp_label;
 	AST_Node_Labeled_Stm *temp_labeled_stm;
 	AST_Node_Arithm_If *temp_arithm_if;
+	AST_Node_Goto *temp_goto;
 
 	switch(node->type){
 		case BASIC_NODE:
@@ -120,7 +121,8 @@ void ast_print_node(AST_Node *node, int indent){
 			}
 			indent ++;
 			ast_print_node(temp_arithm->left, indent);
-			ast_print_node(temp_arithm->right, indent);
+			if(temp_arithm->right)
+				ast_print_node(temp_arithm->right, indent);
 			break;
 		case BOOL_NODE:
 			temp_bool = (struct AST_Node_Bool *) node;
@@ -236,6 +238,13 @@ void ast_print_node(AST_Node *node, int indent){
 			ast_print_node(temp_arithm_if->label1, indent);
 			ast_print_node(temp_arithm_if->label2, indent);
 			ast_print_node(temp_arithm_if->label3, indent);
+			break;
+		case GOTO_NODE:
+			temp_goto = (struct AST_Node_Goto *) node;
+			print_indent(indent);
+			printf("goto\n");
+			indent++;
+			ast_print_node(temp_goto->label, indent);
 			break;
 		default: /* wrong choice case */
 			fprintf(stderr, "Error in node selection %d!\n", node->type);

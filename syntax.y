@@ -108,7 +108,7 @@
 %type <undef_var> undef_variable
 %type <list> vars fields field
 %type <node> declarations expression constant variable assignment simple_statement if_statement label statement
-%type <node> labeled_statement
+%type <node> labeled_statement goto_statement
 
 %%
 program :                   body END subprograms
@@ -168,7 +168,7 @@ statements :                statements labeled_statement
                             | labeled_statement
                             ;
 labeled_statement :         label statement {$$ = new_ast_labeled_stm_node($1, $2); ast_print_node($$, 0);}
-                            | statement {$$ = $1; ast_print_node($$, 0);}
+                            | statement {$$ = $1;}
                             ;
 label :                     ICONST      {$$ = new_ast_label_node($1.ival);}
                             ;
@@ -176,7 +176,7 @@ statement :                 simple_statement        {$$ = $1;}
                             | compound_statement    {}
                             ;
 simple_statement :          assignment          {$$ = $1;}
-                            | goto_statement    {}
+                            | goto_statement    {$$ = $1;}
                             | if_statement      {$$ = $1;}
                             | subroutine_call   {}
                             | io_statement      {}
@@ -185,7 +185,7 @@ simple_statement :          assignment          {$$ = $1;}
                             | STOP              {}
                             ;
 assignment :                variable ASSIGN expression {$$ = new_ast_assign_node($1, $3);}
-                            | variable ASSIGN STRING
+                            | variable ASSIGN STRING   {printf("string\n");}
                             ;
 variable :                  variable COLON ID       {printf("struct\n");}                                //{hashtbl_insert(hashtbl, $3, NULL, scope, current_type);}
                             | variable LPAREN expressions RPAREN    {printf("array\n");}
@@ -202,12 +202,12 @@ expression :                expression OROP expression      {$$ = new_ast_bool_n
                             | expression DIVOP expression   {$$ = new_ast_arithm_node(DIV, $1, $3);}
                             | expression POWEROP expression {$$ = new_ast_arithm_node(POW, $1, $3);}
                             | NOTOP expression              {$$ = new_ast_bool_node(NOT, $2, NULL);}
-                            | ADDOP expression              {}
+                            | ADDOP expression              {$$ = new_ast_arithm_node($1, $2, NULL);}
                             | variable                      {$$ = $1;}
                             | constant                      {$$ = $1;}
                             | LPAREN expression RPAREN      {$$ = $2;}
                             ;
-goto_statement :            GOTO label
+goto_statement :            GOTO label                      {$$ = new_ast_goto_node($2);}
                             | GOTO ID COMMA LPAREN labels RPAREN                    //{hashtbl_insert(hashtbl, $2, NULL, scope, current_type);}
                             ;
 labels :                    labels COMMA label

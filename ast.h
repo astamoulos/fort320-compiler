@@ -31,6 +31,8 @@ typedef enum Node_Type {
 	// other
 	LABEL_NODE,
 	LABELED_STM_NODE,
+	GOTO_NODE,
+	GOTO_CALC_NODE,
 }Node_Type;
 
 /* --------------------OPERATOR TYPES----------------------- */
@@ -298,6 +300,19 @@ typedef struct AST_Node_Arithm_If{
 	struct AST_Node *label3;
 }AST_Node_Arithm_If;
 
+typedef struct AST_Node_Goto{
+	enum Node_Type type; // node type
+
+	struct AST_Node *label;
+}AST_Node_Goto;
+
+typedef struct AST_Node_Goto_Calc{
+	enum Node_Type type; // node type
+
+	struct AST_Node *label;
+}AST_Node_Goto_Calc;
+
+
 /* ------------------AST NODE MANAGEMENT-------------------- */
 /* The basic node */
 AST_Node *new_ast_node(Node_Type type, AST_Node *left, AST_Node *right); 	 // simple nodes
@@ -322,6 +337,7 @@ AST_Node *new_ast_label_node(int label);
 AST_Node *new_ast_labeled_stm_node(AST_Node *label, AST_Node *stm);
 AST_Node *new_ast_arithm_if_node(AST_Node *EXPR, AST_Node *label1, AST_Node *label2, AST_Node *label3);
 /* ... */
+AST_Node *new_ast_goto_node(AST_Node *label);
 
 void ast_traversal(AST_Node *node);
 

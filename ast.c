@@ -161,3 +161,12 @@ AST_Node *new_ast_arithm_if_node(AST_Node *expr, AST_Node *label1, AST_Node *lab
 
 	return (struct AST_Node *) v;
 }
+
+AST_Node *new_ast_goto_node(AST_Node *label){
+	AST_Node_Goto *v = malloc(sizeof(AST_Node_Goto));
+
+	v->type = GOTO_NODE;
+	v->label = label;
+
+	return (struct AST_Node *) v;
+}
