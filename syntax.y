@@ -108,12 +108,12 @@
 %type <undef_var> undef_variable
 %type <list> vars fields field
 %type <node> declarations expression constant variable assignment simple_statement if_statement label statement
-%type <node> labeled_statement goto_statement branch_statement tail body compound_statement
+%type <node> labeled_statement goto_statement branch_statement tail body compound_statement statements
 
 %%
-program :                   body END subprograms
+program :                   body END subprograms {ast = $1;}
                             ;
-body :                      declarations statements {ast_print_node($1, 0);}
+body :                      declarations statements {$$ = new_ast_body_node($1, $2);}
                             ;
 declarations :              declarations type vars  {$$ = new_ast_decl_list_node($1 ,new_ast_decl_node($2, $3)); addToSymbolTable($3, $2, NULL); /*freeList(&$3);*/}
                             | declarations RECORD fields ENDREC vars                {displayList($3);  displayList($5); addToSymbolTable($5, RECORD_TYPE, $3); freeList(&$3); freeList(&$5); printf("list record destroyed\n");}
@@ -164,8 +164,8 @@ constant :                  ICONST      {$$ = new_ast_const_node(INT_TYPE, $1);}
                             | LCONST    {$$ = new_ast_const_node(INT_TYPE, $1);}
                             | CCONST    {$$ = new_ast_const_node(CHARACTER_TYPE, $1);}
                             ;
-statements :                statements labeled_statement
-                            | labeled_statement
+statements :                statements labeled_statement {$$ = new_ast_stms_node($1, $2);}
+                            | labeled_statement {$$ = new_ast_stms_node(NULL, $1);}
                             ;
 labeled_statement :         label statement {$$ = new_ast_labeled_stm_node($1, $2);}
                             | statement {$$ = $1;}
@@ -284,6 +284,7 @@ int main(int argc, char *argv[]) {
 
     yyparse();
     fclose(yyin);
+    ast_print_node(ast, 0);
     //hashtbl_print(hashtbl);
     hashtbl_destroy(hashtbl);
     return 0;

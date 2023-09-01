@@ -191,3 +191,13 @@ AST_Node *new_ast_body_node(AST_Node *decl, AST_Node *expr){
 
 	return (struct AST_Node *) v;
 }
+
+AST_Node *new_ast_stms_node(AST_Node *left, AST_Node *right){
+	AST_Node_Stms *v = malloc(sizeof(AST_Node_Stms));
+
+	v->type = STMS_NODE;
+	v->left = left;
+	v->right = right;
+
+	return (struct AST_Node *) v;
+}

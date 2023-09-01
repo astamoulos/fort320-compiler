@@ -9,6 +9,7 @@ typedef enum Node_Type {
 	DECL_LIST_NODE,
 	DECL_NODE,   // declaration
 	CONST_NODE,  // constant
+	STMS_NODE,	 // statements
 	// statements
 	ARITHM_IF_NODE,
 	IF_NODE,     // if statement
@@ -329,6 +330,13 @@ typedef struct AST_Node_Body{
 	struct AST_Node *expr;
 }AST_Node_Body;
 
+typedef struct AST_Node_Stms{
+	enum Node_Type type; // node type
+	
+	struct AST_Node *left;
+	struct AST_Node *right;
+}AST_Node_Stms;
+
 /* ------------------AST NODE MANAGEMENT-------------------- */
 /* The basic node */
 AST_Node *new_ast_node(Node_Type type, AST_Node *left, AST_Node *right); 	 // simple nodes
@@ -358,5 +366,6 @@ AST_Node *new_ast_branch_node(AST_Node *expr, AST_Node *body, AST_Node *tail);
 AST_Node *new_ast_body_node(AST_Node *decl, AST_Node *expr);
 /**/
 void ast_traversal(AST_Node *node);
+AST_Node *new_ast_stms_node(AST_Node *left, AST_Node *right);
 
 #endif
